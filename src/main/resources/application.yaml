@@ -1,11 +1,11 @@
 spring:
   application:
-    name: backend
+    name: BackEnd
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
     username: sa
-    password: ${DB_PASSWORD}
+    password:
   h2:
     console:
       enabled: true
@@ -17,5 +17,4 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-server:
-  port: 8080
+
