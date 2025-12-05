@@ -22,6 +22,9 @@ public class Book {
     @Column(nullable = false, length = 45)
     private String category;
 
+    @Column(nullable = true, length = 500)
+    private String coverImageUrl;
+
     @Column(nullable = false)
     private int viewCount;
 
@@ -39,8 +42,6 @@ public class Book {
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private BookDetail bookDetail;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BookImage> bookImages;
 
     @PrePersist
     public void onCreate() {
