@@ -1,12 +1,7 @@
 package com.aivle8.backend.service;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.aivle8.backend.domain.Book;
 
-@Service
-@RequiredArgsConstructor
-@Transactional
-public class BookService {
-
+public interface BookService {
+    Book getBook(Long id);
 }
