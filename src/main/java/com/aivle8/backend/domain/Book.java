@@ -2,8 +2,10 @@ package com.aivle8.backend.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -28,9 +30,13 @@ public class Book {
     @Column(nullable = false)
     private int viewCount;
 
-    @Column(nullable = false)
+    /** 생성 시 자동 timestamp */
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime bookCreated;
 
+    /** 업데이트 시 자동 timestamp */
+    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime bookUpdated;
 
@@ -42,16 +48,4 @@ public class Book {
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private BookDetail bookDetail;
 
-
-    @PrePersist
-    public void onCreate() {
-        this.bookCreated = LocalDateTime.now();
-        this.bookUpdated = LocalDateTime.now();
-        this.viewCount = 0;
-    }
-
-    @PreUpdate
-    public void onUpdate() {
-        this.bookUpdated = LocalDateTime.now();
-    }
 }
