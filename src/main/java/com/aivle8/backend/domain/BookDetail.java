@@ -23,6 +23,6 @@ public class BookDetail {
     private String content;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String description;
 }
