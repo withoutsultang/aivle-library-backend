@@ -16,11 +16,11 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookId;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 45)
     private String title;
 
-    @Column(nullable = false, length = 100)
-    private String category; // 카테고리 추가
+    @Column(nullable = false, length = 45)
+    private String category;
 
     @Column(nullable = false)
     private int viewCount;
