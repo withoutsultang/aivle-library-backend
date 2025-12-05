@@ -23,31 +23,6 @@ public class BookController {
      */
     @GetMapping("/api/v1/books")
     public BaseResponse<?> getBooks() {
-        List<Book> books = bookService.getAllBooks();
-        List<BookResponseDto> bookDtos = books.stream()
-                .map(book -> BookResponseDto.builder()
-                        .bookId(book.getBookId())
-                        .title(book.getTitle())
-                        .category(book.getCategory())
-                        .description(book.getBookDetail().getDescription())
-                        .content(book.getBookDetail().getContent())
-                        .viewCount(book.getViewCount())
-                        .bookCreated(book.getBookCreated())
-                        .bookUpdated(book.getBookUpdated())
-                        .coverImageUrl(book.getCoverImageUrl())
-                        .user(UserDto.builder()
-                                .userId(book.getUser().getUserId())
-                                .nickname(book.getUser().getNickname())
-                                .email(book.getUser().getEmail())
-                                .profileImage(book.getUser().getProfileImage())
-                                .build())
-                        .build()
-                ).toList();
-
-        return BaseResponse.success(
-                new Object() {
-                    public final List<BookResponseDto> booksList = bookDtos;
-                }
-        );
+        return BaseResponse.success(bookService.getAllBooks());
     }
 }

@@ -1,6 +1,7 @@
 package com.aivle8.backend.service;
 
 import com.aivle8.backend.domain.Book;
+import com.aivle8.backend.dto.BookResponseDto;
 import com.aivle8.backend.global.exception.CustomException;
 import com.aivle8.backend.global.exception.ErrorCode;
 import com.aivle8.backend.repository.BookRepository;
@@ -23,7 +24,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+    public List<BookResponseDto> getAllBooks() {
+        return bookRepository.findAll().stream()
+                .map(BookResponseDto::fromEntity)
+                .toList();
     }
+
 }
