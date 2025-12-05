@@ -3,50 +3,50 @@ package com.aivle8.backend.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                // PK
+    private Long bookId;
 
     @Column(nullable = false, length = 200)
-    private String title;           // 제목
-
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;         // 본문
-
-    @Column(nullable = false, length = 500)
-    private String description;     // 책 설명(요약)
+    private String title;
 
     @Column(nullable = false, length = 100)
-    private String category;        // 카테고리
-
-    @Column(nullable = true, length = 500)
-    private String coverImageUrl;   // AI로 생성된 표지 이미지 URL
+    private String category; // 카테고리 추가
 
     @Column(nullable = false)
-    private int viewCount;          // 조회수
+    private int viewCount;
 
     @Column(nullable = false)
-    private LocalDateTime bookCreated; // 등록일
+    private LocalDateTime bookCreated;
 
     @Column(nullable = false)
-    private LocalDateTime bookUpdated; // 수정일
+    private LocalDateTime bookUpdated;
 
-    // --- 엔티티 저장/수정 시 자동 시간 설정 ---
+    // --- 연관관계 ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BookDetail bookDetail;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookImage> bookImages;
+
     @PrePersist
     public void onCreate() {
         this.bookCreated = LocalDateTime.now();
         this.bookUpdated = LocalDateTime.now();
-        this.viewCount = 0; // 신규 생성 시 조회수 0
+        this.viewCount = 0;
     }
 
     @PreUpdate
