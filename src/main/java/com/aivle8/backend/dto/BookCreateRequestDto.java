@@ -11,14 +11,15 @@ import lombok.Setter;
 public class BookCreateRequestDto {
 
     @NotBlank(message = "제목은 필수 입력 값입니다.")
-    @Size(max = 200, message = "제목은 200자 이하여야 합니다.")
+    @Size(max = 45, message = "제목은 45자 이하여야 합니다.")
     private String title;
 
     @NotBlank(message = "카테고리는 필수 입력 값입니다.")
-    @Size(max = 100, message = "카테고리는 100자 이하여야 합니다.")
+    @Size(max = 45, message = "카테고리는 45자 이하여야 합니다.")
     private String category;
 
-    @NotBlank(message = "설명은 필수 입력 값입니다.")
+    @NotBlank(message = "도서 요약은 필수 입력 값입니다.")
+    @Size(max = 200, message = "도서 요약은 200자 이하여야 합니다.")
     private String description;
 
     @NotBlank(message = "내용은 필수 입력 값입니다.")
