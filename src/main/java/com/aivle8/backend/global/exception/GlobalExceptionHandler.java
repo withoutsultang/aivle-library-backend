@@ -1,12 +1,12 @@
 package com.aivle8.backend.global.exception;
 
 import com.aivle8.backend.global.common.BaseResponse;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -25,6 +25,24 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(code.getStatus())
+                .body(response);
+    }
+
+    /*
+     * [잘못된 URL 요청]
+     * NoHandlerFoundException을 처리합니다.
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<BaseResponse<?>> handleNotFound(NoHandlerFoundException ex) {
+        log.error("Unhandled Exception: ", ex);
+
+        BaseResponse<?> response =
+                BaseResponse.error(
+                        ErrorCode.NOT_FOUND.getStatus(),
+                        "잘못된 URL입니다."
+                );
+        return ResponseEntity
+                .status(ErrorCode.NOT_FOUND.getStatus())
                 .body(response);
     }
 
