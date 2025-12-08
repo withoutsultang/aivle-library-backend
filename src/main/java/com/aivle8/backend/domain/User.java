@@ -22,6 +22,9 @@ public class User {
     @Column(nullable = false, length = 100, unique = true)
     private String email;
 
+    @Column(nullable = true)
+    private String naverId; // 추가
+
     @Column(nullable = true, length = 500)
     private String profileImage;
 
