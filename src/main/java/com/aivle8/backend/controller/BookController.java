@@ -24,7 +24,7 @@ public class BookController {
      * GET /books/api/v1/books
      */
     @GetMapping("/api/v1/books")
-    public BaseResponse<?> getBooks() {
+    public BaseResponse<List<BookResponseDto>> getBooks() {
         return BaseResponse.success(bookService.getAllBooks());
     }
     /**
