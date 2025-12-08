@@ -80,4 +80,14 @@ public class BookController {
     public BaseResponse<BookDetailResponseDto> getBookDetail(@PathVariable("bookId") Long bookId) {
         return BaseResponse.success(bookService.getBookDetail(bookId));
     }
+
+    /**
+     * 도서 커버 이미지 변경
+     * GET api/v1/books/{bookId}/detail
+     */
+    @PatchMapping("/{bookId}/cover-url")
+    public BaseResponse<Void> updateBookCoverUrl(@PathVariable("bookId") Long bookId, @RequestBody @Valid BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto) {
+        bookService.updateBookCoverUrl(bookId, bookCoverUrlUpdateRequestDto);
+        return BaseResponse.success(null);
+    }
 }
