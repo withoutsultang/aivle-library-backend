@@ -45,7 +45,21 @@ public class Book {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private BookDetail bookDetail;
 
+
+    @PrePersist
+    public void onCreate() {
+        this.viewCount = 0;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.bookUpdated = LocalDateTime.now();
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
 }

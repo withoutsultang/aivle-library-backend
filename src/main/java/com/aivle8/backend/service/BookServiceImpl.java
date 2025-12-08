@@ -3,8 +3,7 @@ package com.aivle8.backend.service;
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookDetail;
 import com.aivle8.backend.domain.User;
-import com.aivle8.backend.dto.BookCreateRequestDto;
-import com.aivle8.backend.dto.BookResponseDto;
+import com.aivle8.backend.dto.*;
 import com.aivle8.backend.global.exception.CustomException;
 import com.aivle8.backend.global.exception.ErrorCode;
 import com.aivle8.backend.repository.BookDetailRepository;
@@ -24,11 +23,56 @@ public class BookServiceImpl implements BookService {
     private final UserRepository userRepository;
     private final BookDetailRepository bookDetailRepository;
 
+    @Override
+    public BookResponseDto getBook(Long bookId) {
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+
+        book.increaseViewCount();
+
+        return BookResponseDto.fromEntity(book);
+    }
 
     @Override
-    public Book getBook(Long id) {
-        return bookRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+    public BookDetailResponseDto getBookDetail(Long bookId) {
+
+        BookDetail detail = bookDetailRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서의 세부 정보가 없습니다."));
+
+        return BookDetailResponseDto.fromEntity(detail);
+    }
+
+    @Override
+    @Transactional
+    public BookUpdateResponseDto updateBook(Long bookId, BookUpdateRequestDto dto) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+
+        book.setTitle(dto.getTitle());
+        book.setCategory(dto.getCategory());
+        book.setCoverImageUrl(dto.getCoverImageUrl());
+
+        BookDetail detail = book.getBookDetail();
+
+        if (detail == null) {
+            detail = new BookDetail();
+            detail.setBook(book);
+            detail.setBookId(bookId);
+            book.setBookDetail(detail);
+        }
+
+        detail.setDescription(dto.getDescription());
+        detail.setContent(dto.getContent());
+
+        return BookUpdateResponseDto.fromEntity(book);
+    }
+
+    @Override
+    public void deleteBook(Long bookId) {
+        Book b = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+        bookRepository.delete(b);
     }
 
     @Override
@@ -39,7 +83,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Long createBook(BookCreateRequestDto request) {
+    public BookCreateResponseDto createBook(BookCreateRequestDto request) {
 
         // TODO: 추후 회원 기능 개발 후 userId로 조회하도록 변경
 //        User user = userRepository.findById(request.getUserId())
@@ -55,17 +99,19 @@ public class BookServiceImpl implements BookService {
                 .user(user)
                 .build();
 
-        bookRepository.save(book);
-
         BookDetail detail = BookDetail.builder()
                 .book(book)                    // OneToOne 연결
                 .content(request.getContent())
                 .description(request.getDescription())
                 .build();
 
-        bookDetailRepository.save(detail);
+        book.setBookDetail(detail);
 
-        return book.getBookId();
+        bookRepository.save(book);
+
+        return BookCreateResponseDto.builder()
+                .bookId(book.getBookId())
+                .build();
     }
 
 }
