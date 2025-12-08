@@ -52,7 +52,6 @@ public class BookServiceImpl implements BookService {
                 .title(request.getTitle())
                 .category(request.getCategory())
                 .coverImageUrl(request.getCoverImageUrl())
-                .viewCount(0)
                 .user(user)
                 .build();
 
