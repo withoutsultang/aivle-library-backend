@@ -1,16 +1,14 @@
 package com.aivle8.backend.service;
 
-import com.aivle8.backend.domain.Book;
-import com.aivle8.backend.dto.BookCreateRequestDto;
-import com.aivle8.backend.dto.BookResponseDto;
+import com.aivle8.backend.dto.*;
 
 import java.util.List;
 
 public interface BookService {
-    Book getBook(Long id);
-
+    BookResponseDto getBook(Long bookId);
+    BookUpdateResponseDto updateBook(Long bookId, BookUpdateRequestDto bookDto);
+    BookDetailResponseDto getBookDetail(Long bookId);
+    void deleteBook(Long bookId);
     List<BookResponseDto> getAllBooks();
-
-    Long createBook(BookCreateRequestDto request);
-
+    BookCreateResponseDto createBook(BookCreateRequestDto request);
 }
