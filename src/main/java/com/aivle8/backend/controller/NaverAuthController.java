@@ -22,10 +22,11 @@ public class NaverAuthController {
         return ResponseEntity.ok(BaseResponse.success(Map.of("loginUrl", loginUrl)));
     }
 
-    @PostMapping("/callback")
-    public ResponseEntity<BaseResponse<Map<String, Object>>> callback(@RequestBody Map<String, String> request) {
-        String code = request.get("code");
-        String state = request.get("state");
+    @GetMapping("/callback")
+    public ResponseEntity<BaseResponse<Map<String, Object>>> callback(
+            @RequestParam String code,
+            @RequestParam String state
+    ) {
         Map<String, Object> result = naverAuthService.getUserInfo(code, state);
         return ResponseEntity.ok(BaseResponse.success(result));
     }
