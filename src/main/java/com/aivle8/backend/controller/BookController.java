@@ -1,10 +1,13 @@
 package com.aivle8.backend.controller;
 
+import com.aivle8.backend.domain.enums.BookSortType;
 import com.aivle8.backend.dto.*;
 import com.aivle8.backend.global.common.BaseResponse;
+import com.aivle8.backend.global.common.PageResponse;
 import com.aivle8.backend.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,12 +20,25 @@ public class BookController {
 
     /**
      * 도서 목록 확인
-     * GET /api/v1/books
+     * GET /api/v1/books?sort=LATEST&page=0&size=10
      */
     @GetMapping
-    public BaseResponse<List<BookResponseDto>> getBooks() {
-        return BaseResponse.success(bookService.getAllBooks());
+    public BaseResponse<PageResponse<BookResponseDto>> getBooks(
+            @RequestParam(defaultValue = "LATEST") BookSortType sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<BookResponseDto> result = bookService.getBooks(sort, page, size);
+
+        PageResponse<BookResponseDto> response = new PageResponse<>(
+                result.getContent(),
+                result.getTotalPages(),
+                result.getTotalElements()
+        );
+
+        return BaseResponse.success(response);
     }
+
 
     /**
      * 신규 도서 등록
