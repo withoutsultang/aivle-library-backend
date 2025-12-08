@@ -11,6 +11,8 @@ import com.aivle8.backend.repository.BookRepository;
 import com.aivle8.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -78,6 +80,14 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookResponseDto> getAllBooks() {
         return bookRepository.findAll().stream()
+                .map(BookResponseDto::fromEntity)
+                .toList();
+    }
+
+    @Override
+    public List<BookResponseDto> getPopularBooks(int limit){
+        Pageable pageable = PageRequest.of(0, limit);
+        return bookRepository.findTopByViewCount(pageable).stream()
                 .map(BookResponseDto::fromEntity)
                 .toList();
     }
