@@ -12,5 +12,5 @@ import java.util.List;
 public class PageResponse<T> {
     private List<T> content;
     private int totalPages;
-    private long totalElements; // optional
+    private long totalElements;
 }
