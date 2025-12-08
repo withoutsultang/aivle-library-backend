@@ -11,5 +11,6 @@ public interface BookService {
     void deleteBook(Long bookId);
     List<BookResponseDto> getAllBooks();
     BookCreateResponseDto createBook(BookCreateRequestDto request);
+    List<BookResponseDto> getPopularBooks(int limit);
     void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto);
 }

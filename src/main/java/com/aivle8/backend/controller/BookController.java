@@ -45,6 +45,15 @@ public class BookController {
     }
 
     /**
+     * 조회수 기준 인기 도서 정보 조회
+     * GET api/v1/books/popular?limit={limit}
+     */
+    @GetMapping("/popular")
+    public BaseResponse<List<BookResponseDto>> getPopularBooks(@RequestParam(defaultValue = "10") int limit) {
+        return BaseResponse.success(bookService.getPopularBooks(limit));
+    }
+
+    /**
      * 도서 수정
      * PUT api/v1/books/{bookId}
      */
