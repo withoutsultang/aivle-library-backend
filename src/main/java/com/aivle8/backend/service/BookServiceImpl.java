@@ -41,9 +41,13 @@ public class BookServiceImpl implements BookService {
     @Override
     public Long createBook(BookCreateRequestDto request) {
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        // TODO: 추후 회원 기능 개발 후 userId로 조회하도록 변경
+//        User user = userRepository.findById(request.getUserId())
+//                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
+        // 임시 개발용 유저 기본 ID = 1
+        User user = userRepository.findById(1L)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "임시 유저가 없습니다. DB에서 생성해주세요."));
         Book book = Book.builder()
                 .title(request.getTitle())
                 .category(request.getCategory())
