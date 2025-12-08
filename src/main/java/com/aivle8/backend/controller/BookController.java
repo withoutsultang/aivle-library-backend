@@ -17,7 +17,7 @@ public class BookController {
 
     /**
      * 도서 일반 정보 조회
-     * GET /books/api/v1/books/{bookId}
+     * GET api/v1/books/{bookId}
      */
     @GetMapping("/{bookId}")
     public BaseResponse<BookResponseDto> getBook(@PathVariable("bookId") Long bookId) {
@@ -26,7 +26,7 @@ public class BookController {
 
     /**
      * 도서 목록 확인
-     * GET /books/api/v1/books
+     * GET /api/v1/books
      */
     @GetMapping
     public BaseResponse<List<BookResponseDto>> getBooks() {
@@ -35,7 +35,7 @@ public class BookController {
 
     /**
      * 신규 도서 등록
-     * POST /books/api/v1/books
+     * POST api/v1/books
      */
     @PostMapping
     public BaseResponse<BookCreateResponseDto> createBook(@RequestBody @Valid BookCreateRequestDto request) {
@@ -46,7 +46,7 @@ public class BookController {
 
     /**
      * 도서 상세 정보 조회
-     * GET /books/api/v1/books/{bookId}/detail
+     * GET api/v1/books/{bookId}/detail
      */
     @GetMapping("/{bookId}/detail")
     public BaseResponse<BookDetailResponseDto> getBookDetail(@PathVariable("bookId") Long bookId) {
@@ -55,7 +55,7 @@ public class BookController {
 
     /**
      * 도서 수정
-     * PUT /books/api/v1/books/{bookId}
+     * PUT api/v1/books/{bookId}
      */
     @PutMapping("/{bookId}")
     public BaseResponse<BookUpdateResponseDto> updateBook(@PathVariable("bookId") Long bookId, @RequestBody @Valid BookUpdateRequestDto book) {
@@ -64,7 +64,7 @@ public class BookController {
 
     /**
      * 도서 삭제
-     * DELETE /books/api/v1/books/{bookId}
+     * DELETE api/v1/books/{bookId}
      */
     @DeleteMapping("/{bookId}")
     public BaseResponse<Void> deleteBook(@PathVariable("bookId") Long bookId) {
