@@ -25,7 +25,6 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookResponseDto getBook(Long bookId) {
-
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
 
@@ -112,6 +111,13 @@ public class BookServiceImpl implements BookService {
         return BookCreateResponseDto.builder()
                 .bookId(book.getBookId())
                 .build();
+    }
+
+    @Override
+    public void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+        book.setCoverImageUrl(bookCoverUrlUpdateRequestDto.getCoverImageUrl());
     }
 
 }
