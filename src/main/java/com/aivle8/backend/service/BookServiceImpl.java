@@ -3,6 +3,7 @@ package com.aivle8.backend.service;
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookDetail;
 import com.aivle8.backend.domain.User;
+import com.aivle8.backend.domain.enums.BookSortType;
 import com.aivle8.backend.dto.*;
 import com.aivle8.backend.global.exception.CustomException;
 import com.aivle8.backend.global.exception.ErrorCode;
@@ -11,8 +12,10 @@ import com.aivle8.backend.repository.BookRepository;
 import com.aivle8.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -77,10 +80,23 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookResponseDto> getAllBooks() {
-        return bookRepository.findAll().stream()
-                .map(BookResponseDto::fromEntity)
-                .toList();
+    public Page<BookResponseDto> getBooks(BookSortType sort, int page, int size) {
+
+        Sort sortOption = switch (sort) {
+            // 인기순
+            case POPULAR -> Sort.by(Sort.Direction.DESC, "viewCount");
+            // 제목 오름차순
+            case TITLE_ASC -> Sort.by(Sort.Direction.ASC, "title");
+            // 제목 내림차순
+            case TITLE_DESC -> Sort.by(Sort.Direction.DESC, "title");
+            // 최신순 (기본 값)
+            case LATEST -> Sort.by(Sort.Direction.DESC, "bookCreated");
+        };
+
+        Pageable pageable = PageRequest.of(page, size, sortOption);
+
+        return bookRepository.findAll(pageable)
+                .map(BookResponseDto::fromEntity);
     }
 
     @Override
