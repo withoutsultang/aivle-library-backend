@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:classpath:.env
   application:
     name: BackEnd
   datasource:
@@ -23,4 +25,14 @@ spring:
   web:
     resources:
       add-mappings: false
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  redirect-uri: ${NAVER_REDIRECT_URI}
+  state: ${NAVER_STATE}
+
+jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS}
+
 
