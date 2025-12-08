@@ -33,7 +33,8 @@ public class BookController {
         PageResponse<BookResponseDto> response = new PageResponse<>(
                 result.getContent(),
                 result.getTotalPages(),
-                result.getTotalElements()
+                result.getTotalElements(),
+                result.getNumber()
         );
 
         return BaseResponse.success(response);
