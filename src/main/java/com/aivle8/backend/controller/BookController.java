@@ -10,19 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/books")
+@RequestMapping("/api/v1/books")
 @RequiredArgsConstructor
 public class BookController {
     public final BookService bookService;
-
-    /**
-     * 도서 일반 정보 조회
-     * GET api/v1/books/{bookId}
-     */
-    @GetMapping("/{bookId}")
-    public BaseResponse<BookResponseDto> getBook(@PathVariable("bookId") Long bookId) {
-        return BaseResponse.success(bookService.getBook(bookId));
-    }
 
     /**
      * 도서 목록 확인
@@ -45,12 +36,12 @@ public class BookController {
     }
 
     /**
-     * 도서 상세 정보 조회
-     * GET api/v1/books/{bookId}/detail
+     * 도서 일반 정보 조회
+     * GET api/v1/books/{bookId}
      */
-    @GetMapping("/{bookId}/detail")
-    public BaseResponse<BookDetailResponseDto> getBookDetail(@PathVariable("bookId") Long bookId) {
-        return BaseResponse.success(bookService.getBookDetail(bookId));
+    @GetMapping("/{bookId}")
+    public BaseResponse<BookResponseDto> getBook(@PathVariable("bookId") Long bookId) {
+        return BaseResponse.success(bookService.getBook(bookId));
     }
 
     /**
@@ -70,5 +61,14 @@ public class BookController {
     public BaseResponse<Void> deleteBook(@PathVariable("bookId") Long bookId) {
         bookService.deleteBook(bookId);
         return BaseResponse.success(null);
+    }
+
+    /**
+     * 도서 상세 정보 조회
+     * GET api/v1/books/{bookId}/detail
+     */
+    @GetMapping("/{bookId}/detail")
+    public BaseResponse<BookDetailResponseDto> getBookDetail(@PathVariable("bookId") Long bookId) {
+        return BaseResponse.success(bookService.getBookDetail(bookId));
     }
 }
