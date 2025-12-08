@@ -16,7 +16,7 @@ import java.util.Date;
 public class JwtService {
 
     /**
-     * .env 또는 application.properties에서 지정한 JWT_SECRET를 주입받습니다.
+     * .env에서 지정한 JWT_SECRET를 주입받습니다.
      */
     @Value("${jwt.secret}")
     private String secret;
@@ -42,7 +42,7 @@ public class JwtService {
                 .claim("nickname", user.getNickname())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                // 기존 Key 객체 대신 getSigningKey()를 사용하도록 수정했습니다.
+                // 기존 Key 객체 대신 getSigningKey()를 사용하도록 수정했습니다.!
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
