@@ -26,7 +26,7 @@ public class BookController {
     public BaseResponse<PageResponse<BookResponseDto>> getBooks(
             @RequestParam(defaultValue = "LATEST") BookSortType sort,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "15") int size
     ) {
         Page<BookResponseDto> result = bookService.getBooks(sort, page, size);
 
