@@ -3,6 +3,8 @@ package com.aivle8.backend.global.exception;
 import com.aivle8.backend.global.common.BaseResponse;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.http.ResponseEntity;
@@ -48,4 +50,28 @@ public class GlobalExceptionHandler {
                 .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
                 .body(response);
     }
+
+
+    /**
+     * [Validation 실패 처리 - @Valid]
+     * Controller 요청의 DTO 검증에서 실패할 경우 발생
+     * - 예: @NotBlank, @Size 조건 위반
+     * - 기본적으로 MethodArgumentNotValidException 발생
+     * - 첫 번째 오류 메시지 반환
+     */
+    @ExceptionHandler(MethodArgumentNotValidException .class)
+    public ResponseEntity<BaseResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
+
+        String errorMessage = ex.getBindingResult().getFieldError().getDefaultMessage();
+
+        BaseResponse<?> response = BaseResponse.error(
+                HttpStatus.BAD_REQUEST,
+                errorMessage
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
 }
