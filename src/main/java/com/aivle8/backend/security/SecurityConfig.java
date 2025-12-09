@@ -11,6 +11,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 /**
  * Spring Security 설정 클래스입니다.
@@ -25,45 +30,59 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
 
-    /**
-     * JWT 필터를 Spring Bean으로 등록합니다.
-     */
+    // JWT 필터 bean
     @Bean
     public JwtFilter jwtFilter() {
         return new JwtFilter(jwtService);
     }
 
-    /**
-     * SecurityFilterChain 설정
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. CSRF 비활성화 (REST API는 세션 기반이 아니므로 불필요)
+                // CORS 활성화
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
 
-                // 2. H2 콘솔을 위해 frame 옵션 비활성화
+                // H2 콘솔 frame 허용
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
 
-                // 3. 세션 상태를 Stateless로 설정 (JWT 사용)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // JWT 기반이므로 세션 사용 X
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 4. 요청 경로별 접근 권한 설정
+                // URL 접근 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/h2-console/**").permitAll() // 로그인, H2 콘솔 허용
-                        .anyRequest().authenticated() // 그 외 요청은 인증 필요
+                        .requestMatchers("/api/v1/auth/**", "/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
                 )
 
-                // 5. JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
+                // JWT 필터 등록
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * AuthenticationManager Bean 등록
-     * (로그인이나 인증 처리 서비스에서 필요)
+     * CORS 설정 Bean
      */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // 프론트 로컬 허용
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true); // 쿠키/JWT 헤더 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
+
+    // AuthenticationManager 등록
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
