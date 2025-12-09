@@ -1,6 +1,7 @@
 package com.aivle8.backend.dto;
 
 import com.aivle8.backend.domain.Book;
+import com.aivle8.backend.domain.BookLike;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,7 +17,7 @@ public class BookResponseDto {
     private int viewCount;
     private LocalDateTime bookCreated;
     private LocalDateTime bookUpdated;
-    private String coverImageUrl;
+    private String coverImageUrl;     // 작성자 정보
     private UserDto user;
     private long likeCount;
     private boolean liked;// 작성자 정보
@@ -52,4 +53,10 @@ public class BookResponseDto {
 
         return book;
     }
+
+    public static BookResponseDto fromBookLikeEntity(BookLike bookLike) {
+        if (bookLike == null || bookLike.getBook() == null) return null;
+        return fromEntity(bookLike.getBook());
+    }
+
 }

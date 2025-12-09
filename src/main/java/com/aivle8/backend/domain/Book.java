@@ -1,11 +1,14 @@
 package com.aivle8.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -43,11 +46,15 @@ public class Book {
     // --- 연관관계 ---
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private BookDetail bookDetail;
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @JsonManagedReference // Book → BookLike 순환 방지
+    private List<BookLike> bookLikes;
 
     @PrePersist
     public void onCreate() {
