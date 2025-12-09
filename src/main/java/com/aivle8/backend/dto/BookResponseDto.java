@@ -17,8 +17,9 @@ public class BookResponseDto {
     private LocalDateTime bookCreated;
     private LocalDateTime bookUpdated;
     private String coverImageUrl;
-
-    private UserDto user;                 // 작성자 정보
+    private UserDto user;
+    private long likeCount;
+    private boolean liked;// 작성자 정보
 
     public static BookResponseDto fromEntity(Book book) {
         if (book == null) return null;
