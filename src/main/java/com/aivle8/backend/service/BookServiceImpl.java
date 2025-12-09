@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +28,16 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final BookDetailRepository bookDetailRepository;
+
+    private User getCurrentUser() {
+        String userIdStr = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = Long.parseLong(userIdStr);
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+    }
+
+
 
     @Override
     public BookResponseDto getBook(Long bookId) {
@@ -40,7 +51,6 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDetailResponseDto getBookDetail(Long bookId) {
-
         BookDetail detail = bookDetailRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서의 세부 정보가 없습니다."));
 
@@ -48,10 +58,15 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
     public BookUpdateResponseDto updateBook(Long bookId, BookUpdateRequestDto dto) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+
+        User user = getCurrentUser();
+
+        if (!book.getUser().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 수정 가능합니다.");
+        }
 
         book.setTitle(dto.getTitle());
         book.setCategory(dto.getCategory());
@@ -74,22 +89,25 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBook(Long bookId) {
-        Book b = bookRepository.findById(bookId)
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
-        bookRepository.delete(b);
+
+        User user = getCurrentUser();
+
+        if (!book.getUser().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 삭제 가능합니다.");
+        }
+
+        bookRepository.delete(book);
     }
 
     @Override
     public Page<BookResponseDto> getBooks(BookSortType sort, int page, int size) {
 
         Sort sortOption = switch (sort) {
-            // 인기순
             case POPULAR -> Sort.by(Sort.Direction.DESC, "viewCount");
-            // 제목 오름차순
             case TITLE_ASC -> Sort.by(Sort.Direction.ASC, "title");
-            // 제목 내림차순
             case TITLE_DESC -> Sort.by(Sort.Direction.DESC, "title");
-            // 최신순 (기본 값)
             case LATEST -> Sort.by(Sort.Direction.DESC, "bookCreated");
         };
 
@@ -109,9 +127,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookCreateResponseDto createBook(BookCreateRequestDto request) {
-
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        User user = getCurrentUser();
 
         Book book = Book.builder()
                 .title(request.getTitle())
@@ -121,7 +137,7 @@ public class BookServiceImpl implements BookService {
                 .build();
 
         BookDetail detail = BookDetail.builder()
-                .book(book)                    // OneToOne 연결
+                .book(book)
                 .content(request.getContent())
                 .description(request.getDescription())
                 .build();
@@ -136,10 +152,16 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto) {
+    public void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto dto) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
-        book.setCoverImageUrl(bookCoverUrlUpdateRequestDto.getCoverImageUrl());
-    }
 
+        User user = getCurrentUser();
+
+        if (!book.getUser().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 커버 변경 가능합니다.");
+        }
+
+        book.setCoverImageUrl(dto.getCoverImageUrl());
+    }
 }

@@ -27,6 +27,7 @@ public class BookCreateRequestDto {
 
     private String coverImageUrl; // 초기 등록 시에는 null 가능
 
-    @NotNull(message = "사용자 ID는 필수 입력 값입니다.")
-    private Long userId;
+// JWT로 관리해서 필요없음
+//    @NotNull(message = "사용자 ID는 필수 입력 값입니다.")
+//    private Long userId;
 }

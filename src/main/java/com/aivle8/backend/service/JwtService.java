@@ -2,6 +2,7 @@
 package com.aivle8.backend.service;
 
 import com.aivle8.backend.domain.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -15,35 +16,35 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    /**
-     * .env에서 지정한 JWT_SECRET를 주입받습니다.
-     */
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration-ms}")
     private long expirationMs;
 
-    /**
-     * 주입받은 문자열(secret)을 Key 객체로 변환하는 헬퍼 메서드입니다.
-     * HMAC-SHA256 알고리즘용 Key 생성.
-     */
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * 사용자 정보를 기반으로 JWT 토큰을 생성합니다.
-     */
+    // 토큰 생성
     public String createToken(User user) {
         return Jwts.builder()
-                .setSubject(String.valueOf(user.getUserId()))
+                .setSubject(String.valueOf(user.getUserId())) // userId 기준
                 .claim("email", user.getEmail())
                 .claim("nickname", user.getNickname())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                // 기존 Key 객체 대신 getSigningKey()를 사용하도록 수정했습니다.!
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+
+    // 토큰 파싱
+    public Claims parseToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
