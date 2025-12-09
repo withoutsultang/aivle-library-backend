@@ -1,5 +1,6 @@
 package com.aivle8.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -33,7 +34,12 @@ public class User {
 
     // --- User ↔ Book (1:N) ---
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Book> books;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference // User → BookLike 직렬화 허용
+    private List<BookLike> likes;
 
     @PrePersist
     public void onCreate() {
