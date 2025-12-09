@@ -1,9 +1,8 @@
 // src/main/java/com/aivle8/backend/security/AuthService.java
-package com.aivle8.backend.security;
+package com.aivle8.backend.service;
 
 import com.aivle8.backend.domain.User;
 import com.aivle8.backend.repository.UserRepository;
-import com.aivle8.backend.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
