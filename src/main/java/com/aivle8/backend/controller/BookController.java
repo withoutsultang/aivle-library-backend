@@ -8,6 +8,7 @@ import com.aivle8.backend.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,10 +47,11 @@ public class BookController {
      * POST api/v1/books
      */
     @PostMapping
-    public BaseResponse<BookCreateResponseDto> createBook(@RequestBody @Valid BookCreateRequestDto request) {
-        BookCreateResponseDto createdId = bookService.createBook(request);
-
-        return BaseResponse.created(createdId);
+    public BaseResponse<BookCreateResponseDto> createBook(@RequestBody @Valid BookCreateRequestDto request,
+                                                          @AuthenticationPrincipal String userId) {
+        return BaseResponse.created(
+                bookService.createBook(request, Long.parseLong(userId))
+        );
     }
 
     /**
@@ -58,7 +60,8 @@ public class BookController {
      */
     @GetMapping("/{bookId}")
     public BaseResponse<BookResponseDto> getBook(@PathVariable("bookId") Long bookId) {
-        return BaseResponse.success(bookService.getBook(bookId));
+        BookResponseDto result = bookService.getBook(bookId);
+        return BaseResponse.success(result);
     }
 
     /**
@@ -75,8 +78,10 @@ public class BookController {
      * PUT api/v1/books/{bookId}
      */
     @PutMapping("/{bookId}")
-    public BaseResponse<BookUpdateResponseDto> updateBook(@PathVariable("bookId") Long bookId, @RequestBody @Valid BookUpdateRequestDto book) {
-        return BaseResponse.success(bookService.updateBook(bookId, book));
+    public BaseResponse<BookUpdateResponseDto> updateBook(@PathVariable("bookId") Long bookId,
+                                                          @RequestBody @Valid BookUpdateRequestDto book,
+                                                          @AuthenticationPrincipal String userId) {
+        return BaseResponse.success(bookService.updateBook(bookId, book, Long.parseLong(userId)));
     }
 
     /**
@@ -84,8 +89,9 @@ public class BookController {
      * DELETE api/v1/books/{bookId}
      */
     @DeleteMapping("/{bookId}")
-    public BaseResponse<Void> deleteBook(@PathVariable("bookId") Long bookId) {
-        bookService.deleteBook(bookId);
+    public BaseResponse<Void> deleteBook(@PathVariable("bookId") Long bookId,
+                                         @AuthenticationPrincipal String userId) {
+        bookService.deleteBook(bookId, Long.parseLong(userId));
         return BaseResponse.success(null);
     }
 
@@ -103,8 +109,9 @@ public class BookController {
      * GET api/v1/books/{bookId}/detail
      */
     @PatchMapping("/{bookId}/cover-url")
-    public BaseResponse<Void> updateBookCoverUrl(@PathVariable("bookId") Long bookId, @RequestBody @Valid BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto) {
-        bookService.updateBookCoverUrl(bookId, bookCoverUrlUpdateRequestDto);
+    public BaseResponse<Void> updateBookCoverUrl(@PathVariable("bookId") Long bookId, @RequestBody @Valid BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto,
+                                                 @AuthenticationPrincipal String userId) {
+        bookService.updateBookCoverUrl(bookId, bookCoverUrlUpdateRequestDto, Long.parseLong(userId));
         return BaseResponse.success(null);
     }
 }
