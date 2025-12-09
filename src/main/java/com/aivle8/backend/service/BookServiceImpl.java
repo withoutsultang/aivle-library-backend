@@ -1,4 +1,3 @@
-// src/main/com/aivle8/backend/service/BookServiceImpl.java
 package com.aivle8.backend.service;
 
 import com.aivle8.backend.domain.Book;
