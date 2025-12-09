@@ -1,19 +1,21 @@
-// src/main/com/aivle8/backend/security/JwtFilter.java
 package com.aivle8.backend.security;
 
 import com.aivle8.backend.service.JwtService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -32,14 +34,22 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token != null && StringUtils.hasText(token)) {
             try {
                 Claims claims = jwtService.parseToken(token);
+                String userId = claims.getSubject();
 
-                // SecurityContext에 인증 정보 등록
-                String userId = claims.getSubject(); // subject에 userId 저장
+                UserDetails userDetails = User.withUsername(userId)
+                        .password("")
+                        .authorities(List.of(new SimpleGrantedAuthority("ROLE_USER")))
+                        .build();
+
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                        new UsernamePasswordAuthenticationToken(
+                                userId, // principal을 String으로 변경
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        );
+
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
-
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();

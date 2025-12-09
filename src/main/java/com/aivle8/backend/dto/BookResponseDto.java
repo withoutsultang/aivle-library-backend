@@ -2,6 +2,7 @@ package com.aivle8.backend.dto;
 
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookLike;
+import com.aivle8.backend.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,19 +12,35 @@ import java.time.LocalDateTime;
 @Builder
 public class BookResponseDto {
 
-    private Long bookId;                  // PK
+    private Long bookId;
     private String title;
     private String category;
     private int viewCount;
     private LocalDateTime bookCreated;
     private LocalDateTime bookUpdated;
-    private String coverImageUrl;     // 작성자 정보
+    private String coverImageUrl;
     private UserDto user;
     private long likeCount;
-    private boolean liked;// 작성자 정보
+    private boolean liked;
 
+    /** 기존 호출 호환용 (로그인 사용자 정보 없이) */
     public static BookResponseDto fromEntity(Book book) {
+        return fromEntity(book, null);
+    }
+
+    /**
+     * Book 엔티티 + 현재 로그인 사용자 기준으로 DTO 생성
+     */
+    public static BookResponseDto fromEntity(Book book, User currentUser) {
         if (book == null) return null;
+
+        boolean liked = false;
+        if (currentUser != null && book.getBookLikes() != null) {
+            liked = book.getBookLikes().stream()
+                    .anyMatch(bl -> bl.getUser().getUserId().equals(currentUser.getUserId()));
+        }
+
+        long likeCount = book.getBookLikes() != null ? book.getBookLikes().size() : 0;
 
         return BookResponseDto.builder()
                 .bookId(book.getBookId())
@@ -34,6 +51,8 @@ public class BookResponseDto {
                 .bookUpdated(book.getBookUpdated())
                 .coverImageUrl(book.getCoverImageUrl())
                 .user(UserDto.fromEntity(book.getUser()))
+                .likeCount(likeCount)
+                .liked(liked)
                 .build();
     }
 
@@ -56,7 +75,6 @@ public class BookResponseDto {
 
     public static BookResponseDto fromBookLikeEntity(BookLike bookLike) {
         if (bookLike == null || bookLike.getBook() == null) return null;
-        return fromEntity(bookLike.getBook());
+        return fromEntity(bookLike.getBook(), bookLike.getUser()); // 로그인 사용자 기준
     }
-
 }
