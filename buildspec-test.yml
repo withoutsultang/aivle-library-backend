@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - chmod +x ./gradlew
+  build:
+    commands:
+      - ./gradlew test
+
+reports:
+  junit:
+    files:
+      - '**/build/test-results/test/*.xml'
+    file-format: JUNITXML
