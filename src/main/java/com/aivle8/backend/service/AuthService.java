@@ -16,7 +16,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
 
-    /**
+    /** 안녕
      * Naver 로그인 시 DB 조회 및 JWT 발급
      */
     @Transactional
