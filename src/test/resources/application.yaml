@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+naver:
+  client-id: dummy
+  client-secret: dummy
+  redirect-uri: http://localhost:8080/dummy
+  state: dummy
+
+jwt:
+  secret: dummy-secret
+  expiration-ms: 3600000
