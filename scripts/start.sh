@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPOSITORY=/home/ubuntu/app
-PROJECT_NAME=modu-back
+PROJECT_NAME=backend
 
 echo "> 현재 실행 중인 애플리케이션 PID 확인"
 CURRENT_PID=$(pgrep -fl "$PROJECT_NAME" | grep jar | awk '{print $1}')
