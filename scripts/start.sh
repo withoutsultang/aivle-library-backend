@@ -40,20 +40,24 @@ fi
 echo "> 최신 JAR 파일: $LATEST_JAR"
 chmod +x "$LATEST_JAR"
 
-echo "> $LATEST_JAR 실행 (환경 변수 주입)"
-
-# [중요] .bashrc의 변수를 명시적으로 로드 (혹시 모를 상황 대비)
-source /home/ubuntu/.bashrc
-
 # 단 한 번만 실행합니다.
 # 시스템 프로퍼티(-D) 방식으로 주입하여 application.yml의 설정값을 대체합니다.
-nohup java \
-    -Djwt.secret="$JWT_SECRET" \
-    -Djwt.expiration-ms="$JWT_EXPIRATION_MS" \
-    -Dnaver.client-id="$NAVER_CLIENT_ID" \
-    -Dnaver.client-secret="$NAVER_CLIENT_SECRET" \
-    -Dnaver.redirect-uri="$NAVER_REDIRECT_URI" \
-    -Dnaver.state="$NAVER_STATE" \
-    -jar "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
+set -a
+source /home/ubuntu/app/.env
+set +a
 
-echo "> 배포 완료"
+
+JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:-3600000}
+
+case "$JWT_EXPIRATION_MS" in
+  ''|[!0-9]) echo "JWT_EXPIRATION_MS must be a number, got: '$JWT_EXPIRATION_MS'"; exit 1;;
+esac
+
+nohup java \
+  -Djwt.secret="$JWT_SECRET" \
+  -Djwt.expiration-ms="$JWT_EXPIRATION_MS" \
+  -Dnaver.client-id="$NAVER_CLIENT_ID" \
+  -Dnaver.client-secret="$NAVER_CLIENT_SECRET" \
+  -Dnaver.redirect-uri="$NAVER_REDIRECT_URI" \
+  -Dnaver.state="$NAVER_STATE" \
+  -jar "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
