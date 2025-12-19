@@ -33,5 +33,8 @@ spring:
   jwt:
       secret: ${JWT_SECRET}
       expiration-ms: ${JWT_EXPIRATION_MS}
+  app:
+    frontend-base-url: ${FRONTEND_BASE_URL}
+    frontend-redirect-path: ${FRONTEND_REDIRECT_PATH:/oauth/success}
 
 
