@@ -16,18 +16,14 @@ fi
 
 echo "> 새 애플리케이션 배포 준비"
 
-# Globbing을 사용하여 파일 목록을 안전하게 가져옴
 LATEST_JAR=""
 LATEST_TIME=0
 
-# for loop와 glob을 사용하여 파일명에 특수문자가 있어도 안전하게 처리
+# 최신 JAR 파일 찾기
 for jar in "$REPOSITORY"/*.jar; do
-    # 파일이 존재하지 않는 경우(glob 실패) 대비
     [ -e "$jar" ] || continue
 
-    # plain.jar는 실행 파일이 아니므로 제외
     if [[ "$jar" != *"plain.jar"* ]]; then
-        # 가장 최근에 수정된 파일을 찾음
         MOD_TIME=$(stat -c %Y "$jar")
         if [ "$MOD_TIME" -gt "$LATEST_TIME" ]; then
             LATEST_TIME=$MOD_TIME
@@ -44,6 +40,20 @@ fi
 echo "> 최신 JAR 파일: $LATEST_JAR"
 chmod +x "$LATEST_JAR"
 
-echo "> $LATEST_JAR 실행"
-# 로그와 실행 경로에 모두 절대 경로 사용
-nohup java -jar "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
+echo "> $LATEST_JAR 실행 (환경 변수 주입)"
+
+# [중요] .bashrc의 변수를 명시적으로 로드 (혹시 모를 상황 대비)
+source /home/ubuntu/.bashrc
+
+# 단 한 번만 실행합니다.
+# 시스템 프로퍼티(-D) 방식으로 주입하여 application.yml의 설정값을 대체합니다.
+nohup java -jar \
+    -Djwt.secret="$JWT_SECRET" \
+    -Djwt.expiration-ms="$JWT_EXPIRATION_MS" \
+    -Dnaver.client-id="$NAVER_CLIENT_ID" \
+    -Dnaver.client-secret="$NAVER_CLIENT_SECRET" \
+    -Dnaver.redirect-uri="$NAVER_REDIRECT_URI" \
+    -Dnaver.state="$NAVER_STATE" \
+    "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
+
+echo "> 배포 완료"
