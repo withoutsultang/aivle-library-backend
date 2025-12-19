@@ -3,28 +3,28 @@ os: linux
 
 files:
   - source: /
-    destination: /opt/app
+    destination: /home/ubuntu/app   # 우분투 사용자 홈 경로 추천
     overwrite: true
 
 permissions:
-  - object: /opt/app
+  - object: /home/ubuntu/app
     pattern: "**"
-    owner: ec2-user
-    group: ec2-user
+    owner: ubuntu                  # ec2-user 대신 ubuntu로 수정
+    group: ubuntu                  # group도 ubuntu로 수정
     mode: 755
 
 hooks:
   ApplicationStop:
     - location: scripts/stop.sh
       timeout: 60
-      runas: ec2-user
+      runas: ubuntu                # ubuntu로 수정
 
   ApplicationStart:
     - location: scripts/start.sh
       timeout: 60
-      runas: ec2-user
+      runas: ubuntu                # ubuntu로 수정
 
   ValidateService:
     - location: scripts/validate.sh
       timeout: 60
-      runas: ec2-user
+      runas: ubuntu                # ubuntu로 수정
