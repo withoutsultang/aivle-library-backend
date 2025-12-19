@@ -4,7 +4,7 @@ echo "> 서비스 상태 확인을 위해 20초 대기..."
 sleep 20
 
 # localhost:8080에 요청을 보내 HTTP 상태 코드를 가져옵니다.
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health || true)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health || true)
 
 echo "> HTTP 응답 코드: $HTTP_CODE"
 
