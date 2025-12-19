@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity; // HTTP 응답 전체(상태 코
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*; // Spring Web 관련 어노테이션들 임포트 (*: RestController, RequestMapping, GetMapping 등)
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.beans.factory.annotation.Value;
+
 
 import java.util.Map; // 데이터를 키-값 쌍으로 주고받기 위한 Map 인터페이스 임포트
 
@@ -16,6 +18,12 @@ import java.util.Map; // 데이터를 키-값 쌍으로 주고받기 위한 Map 
 public class NaverAuthController {
 
     private final NaverAuthService naverAuthService;
+
+    @Value("${app.frontend-base-url}")
+    private String frontendBaseUrl;
+
+    @Value("${app.frontend-redirect-path:/oauth/success}")
+    private String frontendRedirectPath;
 
     @GetMapping("/login-url")
     @ResponseBody // 이 메서드의 반환 값은 HTTP 응답 본문으로 직접 사용됩니다.
@@ -32,9 +40,6 @@ public class NaverAuthController {
 
         Map<String, Object> result = naverAuthService.getUserInfo(code, state);
         String accessToken = (String) result.get("jwt");
-
-        String frontendBaseUrl = "http://localhost:5173";
-        String frontendRedirectPath = "/oauth/success";
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendBaseUrl)
                 .path(frontendRedirectPath)

@@ -25,13 +25,14 @@ spring:
   web:
     resources:
       add-mappings: false
-  naver:
-    client-id: ${NAVER_CLIENT_ID}
-    client-secret: ${NAVER_CLIENT_SECRET}
-    redirect-uri: ${NAVER_REDIRECT_URI}
-    state: ${NAVER_STATE}
-  jwt:
-      secret: ${JWT_SECRET}
-      expiration-ms: ${JWT_EXPIRATION_MS}
-
-
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  redirect-uri: ${NAVER_REDIRECT_URI}
+  state: ${NAVER_STATE}
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS}
+app:
+  frontend-base-url: ${FRONTEND_BASE_URL}
+  frontend-redirect-path: ${FRONTEND_REDIRECT_PATH:/oauth/success}
