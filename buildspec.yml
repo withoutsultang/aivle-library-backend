@@ -4,15 +4,14 @@ phases:
   install:
     runtime-versions:
       java: corretto17
-    commands:
-      - chmod +x ./gradlew
   build:
     commands:
-      - ./gradlew clean test build
+      - chmod +x ./gradlew
+      - ./gradlew clean build -x test
 
 artifacts:
   files:
     - build/libs/*.jar
     - appspec.yml
-    - scripts/**/*
-  discard-paths: yes
+    - scripts/*.sh    # scripts 폴더 내의 모든 실행 파일을 포함
+  discard-paths: no   # 구조를 유지하기 위해 반드시 no로 설정

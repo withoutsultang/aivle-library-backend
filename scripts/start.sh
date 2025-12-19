@@ -1,16 +1,21 @@
 #!/bin/bash
-JAR_NAME=$(ls -tr /home/ec2-user/app/*.jar | tail -1)
-echo "> 실행할 JAR 파일: $JAR_NAME"
+# scripts/start.sh
 
-# 기존에 8080 포트를 쓰는 프로세스가 있다면 종료
-CURRENT_PID=$(lsof -ti:8080)
-if [ -z "$CURRENT_PID" ]; then
-    echo "> 현재 구동 중인 애플리케이션이 없으므로 종료하지 않습니다."
-else
-    echo "> kill -15 $CURRENT_PID"
-    kill -15 $CURRENT_PID
-    sleep 5
+# jar 파일 이름을 정확히 지정하거나 와일드카드 사용
+APP_NAME=$(ls /home/ubuntu/app/backend-0.0.1-SNAPSHOT.jar)
+REPOSITORY=/home/ubuntu/app
+
+echo "> 서비스 실행 시작"
+cd $REPOSITORY
+
+# 기존 프로세스 종료
+PID=$(lsof -ti:8080 || true)
+if [ -n "$PID" ]; then
+  kill -15 "$PID"
+  sleep 5
 fi
 
-# 새 버전 실행
-nohup java -jar $JAR_NAME > /home/ec2-user/app/nohup.out 2>&1 &
+# 실행 (nohup.out도 app 폴더에 생성)
+nohup java -jar $APP_NAME > $REPOSITORY/nohup.out 2>&1 &
+
+echo "> 서비스 실행 완료"
