@@ -15,4 +15,3 @@ reports:
     files:
       - '**/build/test-results/test/*.xml'
     file-format: JUNITXML
-
