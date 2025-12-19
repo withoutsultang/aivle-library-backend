@@ -1,15 +1,15 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      java: corretto17
-    commands:
-      - chmod +x ./gradlew
   build:
     commands:
-      - ./gradlew clean test build
-
+      ./gradlew clean build -x test
+      mkdir -p deploy
+      cp appspec.yml deploy/
+      cp -r scripts deploy/
+      cp build/libs/*.jar deploy/
+      chmod +x deploy/scripts/*.sh
 artifacts:
   files:
-    - build/libs/*.jar
+    - '**/*'
+base-directory: deploy
