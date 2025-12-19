@@ -1,15 +1,38 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - chmod +x ./gradlew || true
+
   build:
     commands:
-      ./gradlew clean build -x test
-      mkdir -p deploy
-      cp appspec.yml deploy/
-      cp -r scripts deploy/
-      cp build/libs/*.jar deploy/
-      chmod +x deploy/scripts/*.sh
+      - set -euxo pipefail
+      - echo "=== PWD ==="
+      - pwd
+      - echo "=== LIST ROOT ==="
+      - ls -al
+
+      - ./gradlew clean build -x test
+
+      - echo "=== LIST build/libs ==="
+      - ls -al build/libs || true
+
+      # 배포 아티팩트 구성
+      - mkdir -p deploy
+
+      # appspec / scripts 존재 확인 (없으면 여기서 명확히 실패)
+      - test -f appspec.yml
+      - test -d scripts
+
+      - cp appspec.yml deploy/
+      - cp -r scripts deploy/
+      - cp build/libs/*.jar deploy/
+
+      # sh 파일이 없어도 실패하지 않게 처리
+      - find deploy/scripts -type f -name "*.sh" -exec chmod +x {} \;
+
 artifacts:
+  base-directory: deploy
   files:
     - '**/*'
-base-directory: deploy
