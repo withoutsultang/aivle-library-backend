@@ -54,7 +54,7 @@ public class SecurityConfig {
 
                 // URL 접근 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", "/api/v1/auth/**", "/h2-console/**").permitAll() // 루트(/) 추가
+                        .requestMatchers("/api/v1/health", "/api/v1/auth/**", "/h2-console/**").permitAll() // 루트(/) 추가
                         .anyRequest().authenticated()
                 )
 
