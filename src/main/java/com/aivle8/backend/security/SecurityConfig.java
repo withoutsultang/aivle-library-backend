@@ -71,9 +71,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // 프론트 로컬 허용
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173",
+                "https://frontend.example.invalid")); // 프론트 로컬 허용
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedHeaders(Arrays.asList("Authorization"));
         config.setAllowCredentials(true); // 쿠키/JWT 헤더 허용
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
