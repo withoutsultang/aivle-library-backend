@@ -3,6 +3,7 @@ package com.aivle8.backend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+// TEST
 @SpringBootApplication
 public class BackendApplication {
 
