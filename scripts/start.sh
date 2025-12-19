@@ -47,13 +47,13 @@ source /home/ubuntu/.bashrc
 
 # 단 한 번만 실행합니다.
 # 시스템 프로퍼티(-D) 방식으로 주입하여 application.yml의 설정값을 대체합니다.
-nohup java -jar \
+nohup java \
     -Djwt.secret="$JWT_SECRET" \
     -Djwt.expiration-ms="$JWT_EXPIRATION_MS" \
     -Dnaver.client-id="$NAVER_CLIENT_ID" \
     -Dnaver.client-secret="$NAVER_CLIENT_SECRET" \
     -Dnaver.redirect-uri="$NAVER_REDIRECT_URI" \
     -Dnaver.state="$NAVER_STATE" \
-    "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
+    -jar "$LATEST_JAR" > "$REPOSITORY/nohup.out" 2>&1 &
 
 echo "> 배포 완료"
