@@ -51,7 +51,7 @@ done < <(aws --region "$AWS_REGION" ssm get-parameters-by-path \
 JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:-3600000}
 
 echo "> 애플리케이션 실행"
-# JAR_NAME 변수에 이미 전체 경로가 담기도록 수정되었습니다.
+# JAR_NAME 변수에 이미 전체 경로가 담기도록 수정되었습니다,
 nohup java \
   -Dspring.datasource.url="$DB_URL" \
   -Dspring.datasource.username="$DB_USERNAME" \
