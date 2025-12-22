@@ -123,6 +123,7 @@ public class NaverAuthService { // 네이버 소셜 로그인 및 인증 처리�
         // 4. JWT 발급
         String jwt = jwtService.createToken(user); // 인증이 완료된 User 객체를 기반으로 JWT 토큰 생성
 
+
         return Map.of( // 생성된 JWT와 User 객체를 Map 형태로 묶어서 반환
                 "jwt", jwt, // 키 'jwt'에 토큰 문자열을 값으로 저장
                 "user", user // 키 'user'에 처리된 User 객체를 값으로 저장
