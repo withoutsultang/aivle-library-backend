@@ -29,7 +29,7 @@ fi
 echo "> 실행 파일: $JAR_NAME"
 chmod +x "$JAR_NAME"
 
-echo "> Load env from SSM Parameter Store: $PARAM_PATH (Region: $AWS_REGION)"
+cho "> Load env from SSM Parameter Store: $PARAM_PATH (Region: $AWS_REGION)"
 echo "> aws path: $(command -v aws || echo 'not found')"
 aws --version || true
 
