@@ -1,7 +1,7 @@
 spring:
   config:
     import:
-      - "aws-parameterstore:/portfolio/library/runtime/"
+      - "aws-parameterstore:/portfolio/library/config/"
       - "optional:classpath:.env"
   application:
     name: BackEnd
