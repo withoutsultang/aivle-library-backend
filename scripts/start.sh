@@ -2,6 +2,9 @@
 set -euo pipefail
 
 REPOSITORY=/home/ubuntu/app
+
+export PATH="$PATH:/usr/local/bin"
+
 JAR_NAME=$(ls -tr $REPOSITORY/*.jar | tail -n 1)
 PARAM_PATH="/portfolio/library/runtime/"  # 마지막에 /를 붙여주는 것이 인식에 더 좋았습니다.
 AWS_REGION="us-west-1"
@@ -26,25 +29,32 @@ fi
 echo "> 실행 파일: $JAR_NAME"
 chmod +x "$JAR_NAME"
 
-echo "> Load env from SSM Parameter Store: $PARAM_PATH"
+cho "> Load env from SSM Parameter Store: $PARAM_PATH (Region: $AWS_REGION)"
+echo "> aws path: $(command -v aws || echo 'not found')"
+aws --version || true
 
-# 수정 포인트 1: IFS를 사용하여 탭(tab) 구분자를 정확히 인식하도록 변경했습니다.
-# 수정 포인트 2: export를 루프 안에서 확실히 수행합니다.
-while IFS=$'\t' read -r name value; do
-  if [ -n "$name" ]; then
-    key=$(basename "$name")
-    export "$key"="$value"
-    echo "> 로드 완료: $key" # 보안상 값은 출력하지 않고 키 이름만 확인했습니다.
-  fi
-done < <(aws ssm get-parameters-by-path \
-  --region "$AWS_REGION" \
+# 1) JSON으로 받아서 jq로 안전하게 파싱
+PARAMS_JSON=$(aws --region "$AWS_REGION" ssm get-parameters-by-path \
   --path "$PARAM_PATH" \
   --with-decryption \
   --recursive \
-  --query "Parameters[*].[Name,Value]" \
-  --output text)
+  --output json)
 
-# 필수 env 체크 (에러 발생 시 여기서 스크립트가 중단되어 원인을 알 수 있었습니다.)
+# 2) Name/Value를 하나씩 정확히 꺼내서 export
+echo "$PARAMS_JSON" | jq -r '.Parameters[] | [.Name, .Value] | @tsv' | \
+while IFS=$'\t' read -r name value; do
+  key=$(basename "$name")
+
+  # key 유효성 검사(빈 값/이상한 값 방지)
+  if [[ -z "$key" || ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    echo "> [WARN] skip invalid key: '$key' (from $name)"
+    continue
+  fi
+
+  export "$key=$value"
+done
+
+# 필수 env 체크
 : "${DB_URL:?DB_URL is required}"
 : "${DB_USERNAME:?DB_USERNAME is required}"
 : "${DB_PASSWORD:?DB_PASSWORD is required}"
