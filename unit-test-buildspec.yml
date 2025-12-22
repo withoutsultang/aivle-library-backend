@@ -7,7 +7,6 @@ phases:
 
   pre_build:
     commands:
-      - cd backend
       - chmod +x gradlew
 
   build:
