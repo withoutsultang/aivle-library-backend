@@ -1,16 +1,47 @@
 spring:
+  application:
+    name: BackEnd-Test
+
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
     username: sa
     password:
 
+  h2:
+    console:
+      enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+
+  mvc:
+    throw-exception-if-no-handler-found: false
+
+  web:
+    resources:
+      add-mappings: false
+
+server:
+  port: 0   # ⭐ 테스트 시 랜덤 포트 (충돌 방지)
+
+# ===== 외부 연동 더미 설정 =====
 naver:
-  client-id: dummy
-  client-secret: dummy
-  redirect-uri: http://localhost:8080/dummy
-  state: dummy
+  client-id: test-client-id
+  client-secret: test-client-secret
+  redirect-uri: http://localhost/test
+  state: test-state
 
 jwt:
-  secret: dummy-secret
+  secret: test-jwt-secret
   expiration-ms: 3600000
+
+app:
+  frontend-base-url: http://localhost
+  frontend-redirect-path: /oauth/success
