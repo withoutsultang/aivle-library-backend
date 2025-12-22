@@ -1,32 +1,40 @@
 version: 0.0
 os: linux
 
+# 기존 파일이 있으면 덮어쓰도록 유지했습니다.
 file_exists_behavior: OVERWRITE
 
 files:
+  # 빌드된 app.jar 파일을 명시적으로 지정하여 배포 누락을 방지했습니다.
+  - source: app.jar
+    destination: /home/ubuntu/app
+  # 스크립트 파일들도 함께 복사되도록 경로를 추가했습니다.
+  - source: scripts/
+    destination: /home/ubuntu/app/scripts
+  # 루트에 있는 나머지 필요한 파일들이 있다면 기존처럼 복사합니다.
   - source: /
-    destination: /home/ubuntu/app   # 우분투 사용자 홈 경로 추천
-
+    destination: /home/ubuntu/app
 
 permissions:
   - object: /home/ubuntu/app
     pattern: "**"
-    owner: ubuntu                  # ec2-user 대신 ubuntu로 수정
-    group: ubuntu                  # group도 ubuntu로 수정
+    owner: ubuntu
+    group: ubuntu
     mode: 755
 
 hooks:
+  # 각 단계에서 실행될 스크립트 경로와 실행 권한을 유지했습니다.
   ApplicationStop:
     - location: scripts/stop.sh
       timeout: 60
-      runas: ubuntu                # ubuntu로 수정
+      runas: ubuntu
 
   ApplicationStart:
     - location: scripts/start.sh
       timeout: 60
-      runas: ubuntu                # ubuntu로 수정
+      runas: ubuntu
 
   ValidateService:
     - location: scripts/validate.sh
       timeout: 60
-      runas: ubuntu                # ubuntu로 수정
+      runas: ubuntu
