@@ -1,10 +1,12 @@
 version: 0.0
 os: linux
 
+file_exists_behavior: OVERWRITE
+
 files:
   - source: /
     destination: /home/ubuntu/app   # 우분투 사용자 홈 경로 추천
-    overwrite: true
+
 
 permissions:
   - object: /home/ubuntu/app
