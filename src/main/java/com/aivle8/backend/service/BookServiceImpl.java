@@ -18,6 +18,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+
+import java.util.Map;
 import java.util.List;
 
 @Service
@@ -29,18 +34,44 @@ public class BookServiceImpl implements BookService {
     private final BookDetailRepository bookDetailRepository;
     private final S3Service s3Service; // S3 서비스 주입
 
+    private final DynamoDbClient dynamoDbClient;
 
     @Override
     public BookResponseDto getBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
 
-        book.increaseViewCount();
+        // 2. 기존 RDS 조회수 증가 로직은 주석 처리 (차별화 증명용)
+        // book.increaseViewCount();
+
+        // 3. DynamoDB 조회수 증가 메서드 호출
+        incrementViewCount(bookId);
+
         BookResponseDto dto = BookResponseDto.fromEntity(book);
         // DB에 저장된 S3 Key를 접근 가능한 URL로 변환
         dto.setCoverImageUrl(s3Service.getPresignedUrl(book.getCoverImageUrl()));
 
         return dto;
+    }
+
+    @Override
+    public void incrementViewCount(Long bookId) {
+        try {
+            UpdateItemRequest request = UpdateItemRequest.builder()
+                    .tableName("PortfolioBookViews") // DynamoDB 테이블명
+                    .key(Map.of("book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()))
+                    .updateExpression("SET view_count = if_not_exists(view_count, :zero) + :incr")
+                    .expressionAttributeValues(Map.of(
+                            ":zero", AttributeValue.builder().n("0").build(),
+                            ":incr", AttributeValue.builder().n("1").build()
+                    ))
+                    .build();
+
+            dynamoDbClient.updateItem(request);
+        } catch (Exception e) {
+            // 비즈니스 로직에 지장을 주지 않도록 에러 로그만 남김
+            System.err.println("DynamoDB 업데이트 실패: " + e.getMessage());
+        }
     }
 
     @Override

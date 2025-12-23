@@ -55,6 +55,7 @@ dependencies {
 	// AWS Parameter Store 연동을 위한 의존성 추가
 	implementation 'io.awspring.cloud:spring-cloud-starter-aws-parameter-store-config:2.4.4'
 
+	implementation 'software.amazon.awssdk:dynamodb:2.20.0'
 }
 
 tasks.named('test') {

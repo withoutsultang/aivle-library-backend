@@ -29,7 +29,7 @@ spring:
       add-mappings: false
 
 server:
-  port: 0   # ⭐ 테스트 시 랜덤 포트 (충돌 방지)
+  port: 8080
 
 # ===== 외부 연동 더미 설정 =====
 naver:

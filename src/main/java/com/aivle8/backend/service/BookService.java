@@ -15,4 +15,5 @@ public interface BookService {
     BookCreateResponseDto createBook(BookCreateRequestDto request, Long userId);
     List<BookResponseDto> getPopularBooks(int limit);
     void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto bookCoverUrlUpdateRequestDto, Long userId);
+    void incrementViewCount(Long bookId);
 }
