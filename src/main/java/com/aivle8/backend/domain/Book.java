@@ -12,7 +12,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "books")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Book {
