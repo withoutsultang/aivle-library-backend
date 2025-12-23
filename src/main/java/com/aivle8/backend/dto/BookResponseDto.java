@@ -5,10 +5,12 @@ import com.aivle8.backend.domain.BookLike;
 import com.aivle8.backend.domain.User;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Builder
 public class BookResponseDto {
 

@@ -27,6 +27,14 @@ spring:
   web:
     resources:
       add-mappings: false
+  cloud:
+    aws:
+      s3:
+        bucket: ${S3_BUCKET_NAME}
+      region:
+        static: us-west-1
+      stack:
+        auto: false
 naver:
   client-id: ${NAVER_CLIENT_ID}
   client-secret: ${NAVER_CLIENT_SECRET}

@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +27,7 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final BookDetailRepository bookDetailRepository;
+    private final S3Service s3Service; // S3 서비스 주입
 
 
     @Override
@@ -36,8 +36,11 @@ public class BookServiceImpl implements BookService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
 
         book.increaseViewCount();
+        BookResponseDto dto = BookResponseDto.fromEntity(book);
+        // DB에 저장된 S3 Key를 접근 가능한 URL로 변환
+        dto.setCoverImageUrl(s3Service.getPresignedUrl(book.getCoverImageUrl()));
 
-        return BookResponseDto.fromEntity(book);
+        return dto;
     }
 
     @Override
@@ -51,13 +54,20 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookUpdateResponseDto updateBook(Long bookId, BookUpdateRequestDto dto, Long userId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "도서를 찾을 수 없습니다."));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-
-        if (!book.getUser().getUserId().equals(user.getUserId())) {
+        if (!book.getUser().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 수정 가능합니다.");
+        }
+
+        // [이미지 수정 로직]
+        // 새로운 URL이 들어왔고, 기존 URL과 다르다면 처리
+        if (dto.getCoverImageUrl() != null && !dto.getCoverImageUrl().equals(book.getCoverImageUrl())) {
+            // 1. 기존 S3 파일 삭제
+            s3Service.deleteImage(book.getCoverImageUrl());
+            // 2. 새 이미지 S3 업로드
+            String newS3Key = s3Service.uploadImageFromUrl(dto.getCoverImageUrl());
+            book.setCoverImageUrl(newS3Key);
         }
 
         book.setTitle(dto.getTitle());
@@ -82,14 +92,15 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteBook(Long bookId, Long userId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "도서를 찾을 수 없습니다."));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-
-
-        if (!book.getUser().getUserId().equals(user.getUserId())) {
+        if (!book.getUser().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 삭제 가능합니다.");
+        }
+
+        // [삭제 로직] RDS 레코드 삭제 전 S3 파일 먼저 삭제
+        if (book.getCoverImageUrl() != null) {
+            s3Service.deleteImage(book.getCoverImageUrl());
         }
 
         bookRepository.delete(book);
@@ -124,42 +135,32 @@ public class BookServiceImpl implements BookService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
+        // 1. 프론트에서 보낸 한 장의 임시 URL을 S3에 업로드
+        String s3Key = s3Service.uploadImageFromUrl(request.getCoverImageUrl());
 
         Book book = Book.builder()
                 .title(request.getTitle())
                 .category(request.getCategory())
-                .coverImageUrl(request.getCoverImageUrl())
+                .coverImageUrl(s3Key) // S3 경로 저장
                 .user(user)
                 .build();
 
-        BookDetail detail = BookDetail.builder()
-                .book(book)
-                .content(request.getContent())
-                .description(request.getDescription())
-                .build();
-
+        // BookDetail 설정 생략 (기존과 동일)
+        BookDetail detail = BookDetail.builder().book(book).content(request.getContent()).description(request.getDescription()).build();
         book.setBookDetail(detail);
 
         bookRepository.save(book);
-
-        return BookCreateResponseDto.builder()
-                .bookId(book.getBookId())
-                .build();
+        return BookCreateResponseDto.builder().bookId(book.getBookId()).build();
     }
 
     @Override
     public void updateBookCoverUrl(Long bookId, BookCoverUrlUpdateRequestDto dto, Long userId) {
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "해당 도서를 찾을 수 없습니다."));
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "도서 없음"));
+        if (!book.getUser().getUserId().equals(userId)) throw new CustomException(ErrorCode.FORBIDDEN, "권한 없음");
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-
-
-        if (!book.getUser().getUserId().equals(user.getUserId())) {
-            throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 커버 변경 가능합니다.");
-        }
-
-        book.setCoverImageUrl(dto.getCoverImageUrl());
+        // 기존 이미지 삭제 후 새 이미지 등록
+        s3Service.deleteImage(book.getCoverImageUrl());
+        String newS3Key = s3Service.uploadImageFromUrl(dto.getCoverImageUrl());
+        book.setCoverImageUrl(newS3Key);
     }
 }
