@@ -38,7 +38,7 @@ public class BookServiceImpl implements BookService {
 
     private final DynamoDbClient dynamoDbClient;
 
-    private static final String DEFAULT_IMAGE_KEY = "default-cover.png";
+    private static final String DEFAULT_IMAGE_KEY = "ai-images/default-cover.png";
 
 
     @Override
