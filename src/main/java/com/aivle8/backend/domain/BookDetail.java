@@ -19,10 +19,10 @@ public class BookDetail {
     private Book book;
 
     @Lob
-    @Column(nullable = false)
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @Lob
-    @Column(nullable = false, length = 200)
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
 }

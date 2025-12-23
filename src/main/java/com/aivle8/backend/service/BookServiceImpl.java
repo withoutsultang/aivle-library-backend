@@ -151,8 +151,14 @@ public class BookServiceImpl implements BookService {
     public BookCreateResponseDto createBook(BookCreateRequestDto request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        String s3Key;
+        String inputUrl = request.getCoverImageUrl();
 
-        String s3Key = s3Service.uploadImageFromUrl(request.getCoverImageUrl());
+        if (inputUrl != null && !inputUrl.trim().isEmpty()) {
+            s3Key = s3Service.uploadImageFromUrl(inputUrl);
+        } else {
+            s3Key = "default-cover.png";
+        }
 
         Book book = Book.builder()
                 .title(request.getTitle())
@@ -161,7 +167,12 @@ public class BookServiceImpl implements BookService {
                 .user(user)
                 .build();
 
-        BookDetail detail = BookDetail.builder().book(book).content(request.getContent()).description(request.getDescription()).build();
+        BookDetail detail = BookDetail.builder()
+                .book(book)
+                .content(request.getContent())
+                .description(request.getDescription())
+                .build();
+
         book.setBookDetail(detail);
 
         bookRepository.save(book);
