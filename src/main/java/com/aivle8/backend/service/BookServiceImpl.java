@@ -88,11 +88,19 @@ public class BookServiceImpl implements BookService {
             throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 수정 가능합니다.");
         }
 
-        if (dto.getCoverImageUrl() != null && !dto.getCoverImageUrl().equals(book.getCoverImageUrl())) {
-            if (book.getCoverImageUrl() != null && !DEFAULT_IMAGE_KEY.equals(book.getCoverImageUrl())) {
-                s3Service.deleteImage(book.getCoverImageUrl());
+        String currentS3Key = book.getCoverImageUrl();
+        String requestUrl = dto.getCoverImageUrl();
+
+        if (requestUrl == null || requestUrl.trim().isEmpty()) {
+            if (!DEFAULT_IMAGE_KEY.equals(currentS3Key)) {
+                if (currentS3Key != null) s3Service.deleteImage(currentS3Key);
+                book.setCoverImageUrl(DEFAULT_IMAGE_KEY);
             }
-            String newS3Key = s3Service.uploadImageFromUrl(dto.getCoverImageUrl());
+        } else if (!requestUrl.equals(currentS3Key)) {
+            if (currentS3Key != null && !DEFAULT_IMAGE_KEY.equals(currentS3Key)) {
+                s3Service.deleteImage(currentS3Key);
+            }
+            String newS3Key = s3Service.uploadImageFromUrl(requestUrl);
             book.setCoverImageUrl(newS3Key);
         }
 
@@ -101,9 +109,7 @@ public class BookServiceImpl implements BookService {
 
         BookDetail detail = book.getBookDetail();
         if (detail == null) {
-            detail = new BookDetail();
-            detail.setBook(book);
-            detail.setBookId(bookId);
+            detail = BookDetail.builder().book(book).bookId(bookId).build();
             book.setBookDetail(detail);
         }
 
@@ -126,7 +132,7 @@ public class BookServiceImpl implements BookService {
             s3Service.deleteImage(book.getCoverImageUrl());
         }
 
-        bookRepository.save(book);
+        bookRepository.delete(book);
     }
 
     @Override
@@ -162,7 +168,7 @@ public class BookServiceImpl implements BookService {
         if (inputUrl != null && !inputUrl.trim().isEmpty()) {
             s3Key = s3Service.uploadImageFromUrl(inputUrl);
         } else {
-            s3Key = "default-cover.png";
+            s3Key = DEFAULT_IMAGE_KEY;
         }
 
         Book book = Book.builder()
