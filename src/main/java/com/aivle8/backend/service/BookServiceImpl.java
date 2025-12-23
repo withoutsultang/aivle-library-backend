@@ -12,6 +12,7 @@ import com.aivle8.backend.repository.BookRepository;
 import com.aivle8.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
@@ -47,14 +49,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void incrementViewCount(Long bookId) {
+    public void incrementViewCount(Long bookId) { // 인터페이스 명칭과 동일하게
         try {
             UpdateItemRequest request = UpdateItemRequest.builder()
-                    .tableName("PortfolioBookViews") // ⭐ 오타 수정된 테이블명 적용
-                    .key(Map.of(
-                            // 정렬키가 없으므로 book_id(Number)만 전달
-                            "book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()
-                    ))
+                    .tableName("PortfolioBookViews")
+                    .key(Map.of("book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()))
                     .updateExpression("SET view_count = if_not_exists(view_count, :zero) + :incr")
                     .expressionAttributeValues(Map.of(
                             ":zero", AttributeValue.builder().n("0").build(),
@@ -64,7 +63,8 @@ public class BookServiceImpl implements BookService {
 
             dynamoDbClient.updateItem(request);
         } catch (Exception e) {
-            System.err.println("DynamoDB 업데이트 실패: " + e.getMessage());
+            // 에러를 무시하지 말고 로그를 찍어 서버 멈춤 방지
+            log.error("DynamoDB Update Error: {}", e.getMessage());
         }
     }
 
