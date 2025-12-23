@@ -49,6 +49,7 @@ done < <(aws ssm get-parameters-by-path \
 : "${DB_USERNAME:?DB_USERNAME is required}"
 : "${DB_PASSWORD:?DB_PASSWORD is required}"
 : "${JWT_SECRET:?JWT_SECRET is required}"
+: "${S3_BUCKET_NAME:?S3_BUCKET_NAME is required in SSM}"
 
 echo "> 애플리케이션 실행"
 # 수정 포인트 3: yml 구조에 맞게 하이픈(-)과 점(.) 경로를 다시 확인했습니다.
@@ -58,6 +59,7 @@ nohup java \
   -Dspring.datasource.password="$DB_PASSWORD" \
   -Djwt.secret="$JWT_SECRET" \
   -Djwt.expiration-ms="${JWT_EXPIRATION_MS:-3600000}" \
+  -Dcloud.aws.s3.bucket="${S3_BUCKET_NAME}" \
   -Dnaver.client-id="${NAVER_CLIENT_ID:-}" \
   -Dnaver.client-secret="${NAVER_CLIENT_SECRET:-}" \
   -Dnaver.redirect-uri="${NAVER_REDIRECT_URI:-}" \
