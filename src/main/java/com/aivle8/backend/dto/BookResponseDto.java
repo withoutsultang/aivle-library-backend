@@ -3,6 +3,7 @@ package com.aivle8.backend.dto;
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookLike;
 import com.aivle8.backend.domain.User;
+import com.aivle8.backend.global.util.ImageUrlUtil;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,8 +26,6 @@ public class BookResponseDto {
     private long likeCount;
     private boolean liked;
 
-    private static final String S3_BASE_URL = "https://assets.example.invalid/";
-
     /** 기존 호출 호환용 (로그인 사용자 정보 없이) */
     public static BookResponseDto fromEntity(Book book) {
         return fromEntity(book, null);
@@ -38,7 +37,6 @@ public class BookResponseDto {
     public static BookResponseDto fromEntity(Book book, User currentUser) {
         if (book == null) return null;
 
-        // 1. 좋아요 정보 처리
         boolean liked = false;
         if (currentUser != null && book.getBookLikes() != null) {
             liked = book.getBookLikes().stream()
@@ -47,12 +45,7 @@ public class BookResponseDto {
 
         long likeCount = book.getBookLikes() != null ? book.getBookLikes().size() : 0;
 
-        // 2. 이미지 URL 변환 로직 추가
-        String imageUrl = book.getCoverImageUrl();
-        if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("http")) {
-            // "ai-images/uuid.png" 처럼 키값만 들어있는 경우 S3 주소를 앞에 붙여줌
-            imageUrl = S3_BASE_URL + imageUrl;
-        }
+        String imageUrl = ImageUrlUtil.toFullUrl(book.getCoverImageUrl());
 
         return BookResponseDto.builder()
                 .bookId(book.getBookId())
@@ -76,9 +69,6 @@ public class BookResponseDto {
         book.setViewCount(this.viewCount);
         book.setBookCreated(this.bookCreated);
         book.setBookUpdated(this.bookUpdated);
-
-        // 역직렬화(toEntity) 시에는 URL에서 다시 S3 키만 추출할 필요가 있을 수 있지만,
-        // 보통 조회용 DTO이므로 그대로 둡니다.
         book.setCoverImageUrl(this.coverImageUrl);
 
         if (this.user != null) {
