@@ -38,6 +38,9 @@ public class BookServiceImpl implements BookService {
 
     private final DynamoDbClient dynamoDbClient;
 
+    private static final String DEFAULT_IMAGE_KEY = "default-cover.png";
+
+
     @Override
     public BookResponseDto getBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
@@ -86,7 +89,9 @@ public class BookServiceImpl implements BookService {
         }
 
         if (dto.getCoverImageUrl() != null && !dto.getCoverImageUrl().equals(book.getCoverImageUrl())) {
-            s3Service.deleteImage(book.getCoverImageUrl());
+            if (book.getCoverImageUrl() != null && !DEFAULT_IMAGE_KEY.equals(book.getCoverImageUrl())) {
+                s3Service.deleteImage(book.getCoverImageUrl());
+            }
             String newS3Key = s3Service.uploadImageFromUrl(dto.getCoverImageUrl());
             book.setCoverImageUrl(newS3Key);
         }
@@ -117,11 +122,11 @@ public class BookServiceImpl implements BookService {
             throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 삭제 가능합니다.");
         }
 
-        if (book.getCoverImageUrl() != null) {
+        if (book.getCoverImageUrl() != null && !DEFAULT_IMAGE_KEY.equals(book.getCoverImageUrl())) {
             s3Service.deleteImage(book.getCoverImageUrl());
         }
 
-        bookRepository.delete(book);
+        bookRepository.save(book);
     }
 
     @Override
