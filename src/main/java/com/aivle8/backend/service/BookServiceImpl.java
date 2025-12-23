@@ -58,8 +58,11 @@ public class BookServiceImpl implements BookService {
     public void incrementViewCount(Long bookId) {
         try {
             UpdateItemRequest request = UpdateItemRequest.builder()
-                    .tableName("PortfolioBookViews") // DynamoDB 테이블명
-                    .key(Map.of("book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()))
+                    .tableName("PortfolioBookViews") // ⭐ 오타 수정된 테이블명 적용
+                    .key(Map.of(
+                            // 정렬키가 없으므로 book_id(Number)만 전달
+                            "book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()
+                    ))
                     .updateExpression("SET view_count = if_not_exists(view_count, :zero) + :incr")
                     .expressionAttributeValues(Map.of(
                             ":zero", AttributeValue.builder().n("0").build(),
@@ -69,7 +72,6 @@ public class BookServiceImpl implements BookService {
 
             dynamoDbClient.updateItem(request);
         } catch (Exception e) {
-            // 비즈니스 로직에 지장을 주지 않도록 에러 로그만 남김
             System.err.println("DynamoDB 업데이트 실패: " + e.getMessage());
         }
     }

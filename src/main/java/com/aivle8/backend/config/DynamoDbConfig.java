@@ -11,9 +11,8 @@ public class DynamoDbConfig {
 
     @Bean
     public DynamoDbClient dynamoDbClient() {
-        // 현재 사용 중인 리전(예: us-west-1)으로 설정하십시오.
         return DynamoDbClient.builder()
-                .region(Region.US_WEST_1)
+                .region(Region.US_WEST_1) // 테이블이 위치한 us-west-1으로 설정
                 .build();
     }
 }
