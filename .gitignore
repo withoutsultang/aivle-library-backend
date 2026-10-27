@@ -37,3 +37,8 @@ out/
 .vscode/
 
 src/main/resources/.env
+
+# Local credentials
+.env
+.env.*
+!.env.example
