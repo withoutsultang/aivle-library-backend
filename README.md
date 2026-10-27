@@ -1,5 +1,7 @@
 # 모두의 서재 — Backend
 
+포트폴리오 정리자: **김건우 ([withoutsultang](https://github.com/withoutsultang))**
+
 누구나 글을 집필하고 도서 형태로 공개할 수 있는 창작 플랫폼의 백엔드입니다. **KT AIVLE 팀 프로젝트**를 개인 포트폴리오 검토용으로 정리한 독립 저장소이며, 팀 전체의 결과물을 개인 단독 성과로 주장하지 않습니다.
 
 - 원본: [KT-AIVLE-School-4th-Mini-Project/BackEnd](https://github.com/KT-AIVLE-School-4th-Mini-Project/BackEnd)
@@ -71,7 +73,7 @@ API는 기본 포트 `8080`을 사용하며 빌드 결과는 `build/libs/app.jar
 | `022e764` | JWT 필터와 도서 API 응답 처리 변경 |
 | `ccbb714` | Parameter Store 환경변수 주입 관련 빌드·배포 스크립트 변경 |
 
-커밋 식별자는 원본 기준입니다. 정리본의 대응 커밋은 `docs/history-commit-map.tsv`에서 확인할 수 있습니다. 담당 범위의 최종 설명과 정량 성과는 본인 확인 후 보완할 수 있습니다.
+커밋 식별자는 원본 기준입니다. 정리본의 대응 커밋은 `docs/history-commit-map.tsv`에서 확인할 수 있습니다. 이름과 계정은 본인이 확인했습니다. 구체적인 역할 범위는 위 변경 이력을 기준으로 하며 정량 성과는 확인되지 않아 기재하지 않았습니다.
 
 ## 기록·공개 상태
 
