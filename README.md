@@ -1,86 +1,109 @@
-# 모두의 서재 — Backend
+# 📚 모두의 서재 · Backend
 
-포트폴리오 정리자: **김건우 ([withoutsultang](https://github.com/withoutsultang))**
+> 글을 쓰는 사람과 읽는 사람을 연결하는 창작 플랫폼
 
-누구나 글을 집필하고 도서 형태로 공개할 수 있는 창작 플랫폼의 백엔드입니다. **KT AIVLE 팀 프로젝트**를 개인 포트폴리오 검토용으로 정리한 독립 저장소이며, 팀 전체의 결과물을 개인 단독 성과로 주장하지 않습니다.
+누구나 자신의 글을 도서로 등록하고, 다른 사람의 작품을 읽고 관심 도서를 모아볼 수 있는 서비스입니다. AI 표지 생성 기능을 연동해 글 작성부터 표지 선택, 도서 공개까지 하나의 흐름으로 구성했습니다.
 
-- 원본: [KT-AIVLE-School-4th-Mini-Project/BackEnd](https://github.com/KT-AIVLE-School-4th-Mini-Project/BackEnd)
-- 프론트엔드: [aivle-library-frontend](https://github.com/withoutsultang/aivle-library-frontend)
-- 기준 브랜치: `dev`
+**KT AIVLE 팀 프로젝트 · 개발 참여: 김건우 ([withoutsultang](https://github.com/withoutsultang))**
 
-## 목적과 주요 기능
+[Frontend 저장소](https://github.com/withoutsultang/aivle-library-frontend) · [원본 팀 저장소](https://github.com/KT-AIVLE-School-4th-Mini-Project/BackEnd)
 
-도서 등록·목록·상세·수정·삭제, 정렬·페이지네이션, 관심 도서, 마이페이지와 네이버 로그인/JWT 인증을 제공합니다. 표지 파일은 S3를 이용하고, 조회수 처리에는 DynamoDB와 동기화 스케줄러가 포함됩니다. 외부 서비스의 실동작은 이번 검증 범위에 포함하지 않았습니다.
+## 주요 기능
+
+| 기능 | 내용 |
+| --- | --- |
+| 도서 작성·관리 | 도서 등록, 상세·본문 조회, 작성자 권한에 따른 수정·삭제 |
+| 도서 탐색 | 페이지네이션과 최신순·조회수순·제목순 정렬 |
+| 사용자 인증 | 네이버 OAuth 로그인, JWT 기반 API 인증 |
+| 개인 서재 | 관심 도서와 내가 작성한 도서 조회 |
+| 표지 이미지 | 외부 이미지 URL을 이용한 S3 저장·교체·삭제 |
+| 조회수 관리 | DynamoDB 조회수 갱신과 DB 동기화 스케줄러 |
+
+위 기능은 팀이 함께 구현한 서비스 범위입니다. 개인 담당 내용은 아래에 구분했습니다.
+
+## 담당 역할
+
+### 도서 등록·목록 API
+
+- 도서 등록 Controller·Service를 구현하고 사용자와 도서·본문 데이터를 연결했습니다.
+- 목록 조회 결과를 DTO로 변환하고 API 응답을 개선했습니다.
+- 조회수 기준 인기 도서 조회와 정렬 기능을 추가했습니다.
+
+### 입력 검증과 API 오류 응답
+
+- 요청 DTO의 유효성 검사 실패를 공통 예외 처리기에 연결했습니다.
+- 잘못된 입력에 HTTP 400과 검증 메시지를 반환하도록 처리했습니다.
+- JWT 필터와 도서 API의 토큰·응답 처리 개선에 참여했습니다.
+
+### 관심 도서 데이터와 배포 설정
+
+- 관심 도서 엔티티·Repository와 관련 응답 DTO를 추가했습니다.
+- AWS Parameter Store의 환경변수를 애플리케이션에 전달하도록 빌드·시작 스크립트를 수정했습니다.
+- 프론트엔드 주소와 OAuth 콜백, CORS 등 서비스 연동 설정을 조정했습니다.
+
+개인 기여에 대응하는 변경 이력은 [기여 내역](docs/CONTRIBUTIONS.md)에 정리했습니다.
 
 ## 기술 스택
 
-Java 17, Spring Boot 3.5.8, Spring Security, Spring Data JPA, JWT, Gradle Wrapper 9.2.1을 사용합니다. 기본 실행 DB는 **MySQL**이며 H2는 테스트 의존성입니다. AWS S3·DynamoDB·Parameter Store 연동 코드가 포함됩니다. 정확한 의존성과 버전은 `build.gradle`을 기준으로 합니다.
+| 영역 | 기술 |
+| --- | --- |
+| 언어·프레임워크 | Java 17, Spring Boot 3.5.8 |
+| API·인증 | Spring Web, Spring Security, JWT, Naver OAuth |
+| 데이터 | Spring Data JPA, MySQL, DynamoDB |
+| 스토리지·설정 | AWS S3, Parameter Store |
+| 빌드·테스트 | Gradle, JUnit 5, H2 |
 
-## 구조
+## 서비스 구조
+
+```text
+React 클라이언트
+  └─ Spring Boot API
+       ├─ Spring Security · JWT · Naver OAuth
+       ├─ JPA · MySQL              사용자·도서·본문·관심 도서
+       ├─ S3                      표지 이미지
+       └─ DynamoDB · Scheduler    조회수 갱신·동기화
+```
+
+### 코드에서 살펴볼 부분
+
+- [BookServiceImpl](src/main/java/com/aivle8/backend/service/BookServiceImpl.java): 도서 등록·목록·수정·삭제 로직과 외부 스토리지 연동
+- [GlobalExceptionHandler](src/main/java/com/aivle8/backend/global/exception/GlobalExceptionHandler.java): 비즈니스 예외·입력 검증 오류의 공통 응답 처리
+- [BookLike](src/main/java/com/aivle8/backend/domain/BookLike.java): 사용자와 관심 도서의 관계
+- [시작 스크립트](scripts/start.sh): Parameter Store 설정을 읽어 실행 환경에 주입하는 과정
+
+## 프로젝트 구조
 
 ```text
 src/main/java/com/aivle8/backend/
-  controller/       API 요청
-  service/          도서·인증·마이페이지·스토리지 로직
-  repository/       데이터 접근
-  domain/           도서·본문·사용자·관심 도서 엔티티
-  dto/              요청·응답
-  security/         인증 필터·접근 제어
-  config/           AWS·웹·초기 데이터 설정
-  scheduler/        조회수 동기화
-  global/           공통 응답·예외 처리
-src/main/resources/application.yaml
-src/test/           기존 단위 테스트·테스트 설정
-scripts/            원본 배포 스크립트
+├── controller/   API 요청 처리
+├── service/      도서·인증·마이페이지·스토리지 로직
+├── repository/   데이터 접근
+├── domain/       엔티티
+├── dto/          요청·응답 모델
+├── security/     JWT 필터·접근 제어
+├── config/       AWS·웹 설정
+├── scheduler/    조회수 동기화
+└── global/       공통 응답·예외 처리
+src/test/         단위 테스트
+scripts/          배포·실행 스크립트
 ```
 
-## 실행
+## 실행 방법
+
+JDK 17을 사용합니다. 서비스 실행에는 MySQL과 AWS·네이버 OAuth 설정이 필요합니다.
 
 ```sh
 git clone https://github.com/withoutsultang/aivle-library-backend.git
 cd aivle-library-backend
 git switch dev
-```
-
-JDK 17과 접근 가능한 MySQL, 본인이 관리하는 AWS 리소스·권한, 네이버 OAuth 애플리케이션이 필요합니다. 실제 자격증명은 저장소에 넣지 말고 운영체제 환경변수나 본인의 비밀 관리 도구로 주입합니다. `.env.example`은 필요한 변수 목록이며 자동 로드 파일이 아닙니다.
-
-필요한 변수는 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `S3_BUCKET_NAME`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URI`, `NAVER_STATE`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `FRONTEND_BASE_URL`, `FRONTEND_REDIRECT_PATH`입니다. AWS 인증은 SDK 기본 자격증명 체인을 사용합니다.
-
-기본 설정은 AWS Parameter Store의 `/portfolio/library/config/`를 가져옵니다. 원본 `scripts/start.sh`는 별도로 `/portfolio/library/runtime/`에서 값을 읽으므로 두 경로를 같은 것으로 가정하면 안 됩니다. DynamoDB 클라이언트와 테이블 사용에는 원본의 `us-west-1` 및 `PortfolioBookViews` 설정이 남아 있습니다. 서버 주소·S3 URL·DynamoDB 테이블 이름·Parameter Store 경로는 공개용 예시값으로 치환했습니다. `config/WebConfig.java`, `security/SecurityConfig.java`, `global/util/ImageUrlUtil.java`, `scheduler/ViewCountSyncScheduler.java`, `service/BookServiceImpl.java`, `application.yaml`, `scripts/start.sh`의 예시 설정을 본인 리소스에 맞춘 환경에서 실행해야 합니다. 원본 조직의 인프라를 이용할 권한이 있다고 가정하지 마세요.
-
-```sh
-# macOS/Linux
 ./gradlew test bootJar
 ./gradlew bootRun
-
-# Windows PowerShell
-.\gradlew.bat test bootJar
-.\gradlew.bat bootRun
 ```
 
-API는 기본 포트 `8080`을 사용하며 빌드 결과는 `build/libs/app.jar`입니다. `bootRun`은 외부 DB·AWS·OAuth 설정 완료 후 사용하는 명령입니다. 이번 작업에서는 단위 테스트와 패키징을 검증했고, 외부 서비스 연결과 서버 기동·로그인·저장 흐름은 검증하지 않았습니다. 초기 데이터 등록 코드가 있으므로 실서비스 DB를 검증용으로 사용하지 마세요.
+Windows에서는 `./gradlew` 대신 `.\gradlew.bat`를 사용합니다. 설정 항목은 [.env.example](.env.example), 환경 구성과 테스트 명령은 [실행 가이드](docs/RUNNING.md)를 참고해 주세요. 저장소의 인프라 예시값은 실행 환경에 맞게 설정해야 합니다.
 
-## 개인 기여의 근거
+## 관련 문서
 
-원본의 `withoutsultang` 작성 커밋에서 확인되는 변경 이력은 다음과 같습니다. 아래는 해당 변경에 참여했다는 근거이며 기능 전체의 단독 개발이나 성능 개선 수치를 의미하지 않습니다.
-
-| 원본 커밋 | 확인되는 변경 |
-| --- | --- |
-| `7b8e43f` | 도서 등록 Controller·Service 변경 |
-| `574cea8` | 유효성 검사 예외 처리 추가 |
-| `db31610` | 조회수 기준 도서 정렬 변경 |
-| `d119ca8` | 관심 도서 엔티티·저장소 및 응답 DTO 변경 |
-| `022e764` | JWT 필터와 도서 API 응답 처리 변경 |
-| `ccbb714` | Parameter Store 환경변수 주입 관련 빌드·배포 스크립트 변경 |
-
-커밋 식별자는 원본 기준입니다. 정리본의 대응 커밋은 `docs/history-commit-map.tsv`에서 확인할 수 있습니다. 이름과 계정은 본인이 확인했습니다. 구체적인 역할 범위는 위 변경 이력을 기준으로 하며 정량 성과는 확인되지 않아 기재하지 않았습니다.
-
-## 기록·공개 상태
-
-원본 브랜치 7개와 커밋 190개의 연결 관계를 보존했습니다. 과거 고정 DB 비밀번호 3개를 환경변수로 치환하고, 현재 파일과 전체 기록의 원본 서버 주소·AWS 식별자를 예시값으로 가렸습니다. 변경된 과거 파일 객체는 총 31개입니다. 백엔드 커밋 해시 190개가 바뀌었고 기존 서명 40개는 제거됐습니다. 작성자·커미터·날짜·메시지·부모 순서는 보존했습니다. 태그는 원본에 없었습니다.
-
-2026-10-27 검증: `test bootJar` 성공, 기존 테스트 7개 통과. 전체 Git 객체와 커밋 메타데이터를 별도 패턴으로 검사했고 Gitleaks 추가 검사도 수행했습니다. 자동 검사는 알려지지 않은 비밀정보의 부재를 보증하지 않습니다. 과거 DB 비밀번호가 실제 자격증명이었는지 불명확하므로 민감값으로 처리했으며, 실제 사용 이력이 있다면 폐기·재발급이 필요합니다.
-
-교육기관·팀 및 이미지·데이터·작성자 정보의 공개 허용 여부는 저장소 소유자의 확인을 근거로 기록했습니다. 원본에 프로젝트 LICENSE가 없어 임의로 새 라이선스를 부여하지 않았습니다. 제3자 의존성·외부 이미지·서비스에는 각각의 조건이 적용됩니다.
-
-이 저장소는 비공개 검토본으로 준비됐습니다. Public 전환은 별도 검토·승인 후 진행합니다. Git 기록 복사에 Issues, PR 대화·리뷰, Actions 실행 기록·비밀값·설정, 배포 리소스는 포함되지 않습니다.
+- [개인 기여와 변경 이력](docs/CONTRIBUTIONS.md)
+- [환경 설정·실행·테스트](docs/RUNNING.md)
+- [제3자 자료와 의존성 고지](docs/THIRD_PARTY.md)
