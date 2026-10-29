@@ -2,59 +2,73 @@
 
 # 모두의 서재 · Backend
 
-**도서 API부터 인증·권한, 클라우드 배포 연동까지 연결한 Spring Boot 백엔드 포트폴리오**
+**4차에는 로컬 창작 플랫폼을 개발하고, 5차에는 AWS 인프라·배포·환경 구성으로 확장한 프로젝트**
 
-사용자가 글을 등록하고, AI로 만든 표지를 선택해 한 권의 도서로 공개하는 창작 플랫폼입니다.
-KT AIVLE 4·5차 팀 프로젝트에서 **김건우는 도서 등록·목록·인기 조회 API, Validation, 좋아요 데이터 모델, JWT·작성자 인가 개선 및 배포 연동 설정**을 담당했습니다.
+글을 작성하고 AI 표지를 선택해 한 권의 책으로 공개하는 KT AIVLE 4·5차 팀 프로젝트입니다.
+김건우는 **4차 백엔드 API·데이터 계약·인증/인가 개선**, **5차 AWS 구축·환경 설정·배포 전반**을 담당했습니다. 일부 AWS 작업은 팀원과 공동 수행했습니다.
 
-[Frontend](https://github.com/withoutsultang/aivle-library-frontend) · [개인 기여](docs/CONTRIBUTIONS.md) · [설계](docs/ARCHITECTURE.md) · [실행](docs/RUNNING.md) · [검증](docs/VERIFICATION.md)
+[Frontend](https://github.com/withoutsultang/aivle-library-frontend) · [개인 기여](docs/CONTRIBUTIONS.md) · [AWS 구성](docs/AWS_DEPLOYMENT.md) · [설계](docs/ARCHITECTURE.md) · [실행](docs/RUNNING.md) · [검증](docs/VERIFICATION.md)
 
-## 핵심 성과
+## 두 단계로 확장한 프로젝트
 
-|역량|구현과 결과|살펴볼 코드|
+|단계|중심 과제|김건우의 주요 역할|
 |---|---|---|
-|API 계약 설계|Controller–Service–Repository를 연결하고 요청·응답 DTO와 페이지 응답을 구성|[BookController](src/main/java/com/aivle8/backend/controller/BookController.java)|
-|사용자 데이터 보호|JWT 사용자 ID를 서비스에 전달하고 작성자 확인 후 도서를 수정·삭제|[BookServiceImpl](src/main/java/com/aivle8/backend/service/BookServiceImpl.java)|
-|일관된 오류 처리|입력 검증 오류와 비즈니스 예외를 상태 코드·메시지로 전달|[GlobalExceptionHandler](src/main/java/com/aivle8/backend/global/exception/GlobalExceptionHandler.java)|
-|탐색과 도메인 모델링|조회수 기반 상위 N개 조회, BookLike 유니크 제약과 관계 모델|[BookRepository](src/main/java/com/aivle8/backend/repository/BookRepository.java) · [BookLike](src/main/java/com/aivle8/backend/domain/BookLike.java)|
-|배포 환경 연동|health endpoint·CORS·OAuth redirect·RDS·SSM 설정 연결|[SecurityConfig](src/main/java/com/aivle8/backend/security/SecurityConfig.java) · [시작 스크립트](scripts/start.sh)|
+|**4차 · 로컬 플랫폼 개발**|React–Spring Boot–H2로 사용자 흐름과 API 구현|도서 등록·목록·인기 조회, DTO·Validation, 좋아요 모델, JWT·작성자 인가 개선|
+|**5차 · AWS 배포·환경 구성**|개발한 서비스를 클라우드 실행·배포 환경으로 전환|AWS 인프라·환경 설정·배포 전반 담당, CI/CD와 RDS·SSM·OAuth·CORS·health 연동|
 
-## 서비스 구조
+## 4차 · 로컬에서 모두의 서재 개발
 
-```mermaid
-flowchart LR
-    UI[React Client] --> API[Spring Boot REST API]
-    Naver[Naver OAuth] --> Auth[JWT Authentication]
-    Auth --> API
-    API --> DB[(MySQL: 사용자·도서·본문·좋아요)]
-    API --> S3[S3: 표지 저장·서명 URL]
-    API --> Counter[(DynamoDB: 조회수)]
-    Counter --> Sync[조회수 동기화]
-    Sync --> DB
-```
+![4차 로컬 플랫폼 구조](docs/assets/phase-04-local.png)
 
-서비스 전반은 팀이 함께 구현했습니다. 본인의 API·인증·모델·배포 연동 기여와 팀의 스토리지·조회수·인프라 구성을 [기여 문서](docs/CONTRIBUTIONS.md)에 구분했습니다.
+|역량|직접 구현·개선한 내용|살펴볼 코드|
+|---|---|---|
+|API 계약 설계|도서 등록·목록 API, 요청·응답 DTO, 페이지 응답 구성|[BookController](src/main/java/com/aivle8/backend/controller/BookController.java)|
+|입력 검증|Validation 오류를 공통 메시지·상태 코드로 전달|[GlobalExceptionHandler](src/main/java/com/aivle8/backend/global/exception/GlobalExceptionHandler.java)|
+|데이터 모델링·탐색|조회수 기반 상위 N개 조회, BookLike 관계·유니크 제약|[BookRepository](src/main/java/com/aivle8/backend/repository/BookRepository.java) · [BookLike](src/main/java/com/aivle8/backend/domain/BookLike.java)|
+|인증·인가 개선|JWT 사용자 ID 전달, 작성자 확인 후 도서 수정·삭제|[BookServiceImpl](src/main/java/com/aivle8/backend/service/BookServiceImpl.java)|
 
-## 포트폴리오 고도화
+React 화면·네이버 로그인·AI 표지·도서 API를 연결한 서비스 전체는 팀의 공동 결과물입니다. 개인 기여는 [작성 커밋](docs/CONTRIBUTIONS.md)으로 구체화했습니다.
 
-개인 공개본에서는 **인증·이미지·배포의 경계 조건을 테스트로 확인할 수 있는 코드**로 발전시켰습니다.
+## 5차 · AWS 배포와 환경 구성
 
-- 도서 생성 응답에 HTTP `201 Created` 적용
-- 도서 표지의 저장 key와 접근 URL 분리, 서명 URL을 통한 조회
-- 새 이미지 저장 후 교체, 기존 이미지 재선택 시 저장 key 유지
-- 서버에서 AI 표지 생성 요청을 처리하고 PNG 응답을 S3 저장 흐름으로 연결
-- DynamoDB 페이지 전체를 순회하는 조회수 동기화
-- 설정 가능한 CORS·리전·테이블·이미지 출처와 HTTP 200 기반 배포 상태 검사
-- Java 테스트·패키징을 검증하는 CI 구성
+4차의 로컬 서비스를 AWS에서 배포·실행하는 환경으로 확장했습니다. **김건우는 AWS 인프라 구성·환경 설정·배포 전반을 담당했고, 일부 작업은 팀원과 공동 수행했습니다.** 프론트엔드와 백엔드를 각각 배포하면서 네트워크·권한·데이터·실행 설정·배포 파이프라인을 함께 연결했습니다.
+
+![5차 AWS 서비스 아키텍처](docs/assets/phase-05-aws.png)
+
+|구성 영역|AWS 구성과 연결|프로젝트에서 만든 결과|
+|---|---|---|
+|웹 전달·API 라우팅|CloudFront · S3 · ALB|정적 화면과 `/api/v1/*` 요청을 각 origin으로 분리|
+|애플리케이션 실행|VPC · EC2 · Auto Scaling Group · Target Group|여러 인스턴스로 Spring Boot를 실행하고 ALB health 경로와 연결|
+|데이터 저장|RDS MySQL · S3 · DynamoDB|사용자·도서 데이터, 표지 객체, 조회수 저장을 외부 서비스로 분리|
+|실행 설정·권한|SSM Parameter Store · IAM 역할|배포 서비스와 실행 환경을 연결하고 DB·JWT·OAuth 설정을 앱에 주입|
+|배포·운영 관측|CodePipeline · CodeBuild · CodeDeploy · SNS · CloudWatch|테스트·빌드·승인·배포 단계와 지표·로그 관측 환경 구성|
+
+### CI/CD 구성
+
+![5차 프론트·백엔드 AWS CI/CD](docs/assets/phase-05-pipeline.png)
+
+프론트엔드는 테스트·빌드 후 정적 산출물을 S3에 배포하고, 백엔드는 JAR를 생성해 CodeDeploy로 EC2 배포 그룹에 전달합니다. 수동 승인과 SNS를 연결하고 CloudWatch 지표·로그로 실행 환경을 확인하는 흐름을 구성했습니다.
+
+자세한 구성과 기여 근거는 [AWS 배포·환경 구성](docs/AWS_DEPLOYMENT.md), [개인 기여](docs/CONTRIBUTIONS.md)에서 확인할 수 있습니다. 이미지는 5차 팀 코드·콘솔 자료를 재구성한 설명도이며, 인스턴스 개수는 구조를 보여주기 위한 예시입니다.
+
+## 개인 공개본 고도화 · 2026년 10월
+
+4·5차 프로젝트 이력을 바탕으로 현재 공개본에는 다음 개선을 추가했습니다.
+
+- 도서 생성 HTTP `201 Created`, 기존 표지 유지와 새 표지 저장 후 교체
+- 서버 기반 AI 표지 생성, S3 key와 서명 URL 분리, PNG 입력 검증
+- DynamoDB 전체 페이지 순회, 설정 가능한 CORS·리전·테이블
+- HTTP 200 기반 상태 검사와 필수 설정 확인 후 시작하는 배포 스크립트
+- **백엔드 테스트 26개 통과**, 테스트·JAR 패키징 GitHub Actions CI
 
 ## 기술 스택
 
-|영역|기술|
+|구분|기술|
 |---|---|
-|Backend|Java 17 · Spring Boot 3.5.8 · Spring Web · Spring Data JPA|
-|Security|Spring Security · JWT · Naver OAuth|
-|Data & Cloud|MySQL · AWS S3 · DynamoDB · EC2 · CodeDeploy · Parameter Store|
-|Quality|Gradle Wrapper · JUnit 5 · Mockito · GitHub Actions|
+|4차 개발|Java 17 · Spring Boot 3.5.8 · Spring Data JPA · Spring Security · JWT · H2 · Naver OAuth|
+|5차 AWS|VPC · EC2 · ALB · ASG · RDS MySQL · S3 · CloudFront · DynamoDB · SSM · IAM|
+|5차 배포·관측|CodePipeline · CodeBuild · CodeDeploy · SNS · CloudWatch|
+|현재 품질 관리|Gradle Wrapper · JUnit 5 · Mockito · GitHub Actions|
 
 ## 빠른 시작
 
@@ -64,16 +78,14 @@ cd aivle-library-backend
 ./gradlew test bootJar
 ```
 
-Windows에서는 `.\gradlew.bat test bootJar`를 사용합니다.
-API 서버 실행은 JDK 17, MySQL과 본인 AWS·네이버 설정을 준비한 뒤 `./gradlew bootRun`으로 시작합니다.
-환경변수 목록은 [.env.example](.env.example), 상세 절차는 [실행 가이드](docs/RUNNING.md)를 참고하세요.
+Windows에서는 `.\gradlew.bat test bootJar`를 사용합니다. 현재 서버는 MySQL·AWS·네이버 환경변수를 설정한 뒤 `./gradlew bootRun`으로 실행합니다.
+변수 목록은 [.env.example](.env.example), 상세 절차는 [실행 가이드](docs/RUNNING.md)에 정리했습니다.
 
-## 탐색 가이드
+## 더 살펴보기
 
-- [개인 기여와 커밋 근거](docs/CONTRIBUTIONS.md)
-- [데이터·인증·배포 설계](docs/ARCHITECTURE.md)
-- [API 목록](docs/API.md)
-- [테스트·빌드 검증](docs/VERIFICATION.md)
-- [제3자 자료와 출처](docs/THIRD_PARTY.md)
+- [4차·5차 개인 기여와 커밋 근거](docs/CONTRIBUTIONS.md)
+- [AWS 배포·환경 구성 상세](docs/AWS_DEPLOYMENT.md)
+- [애플리케이션 설계](docs/ARCHITECTURE.md) · [API 목록](docs/API.md)
+- [검증 기록](docs/VERIFICATION.md) · [제3자 자료와 출처](docs/THIRD_PARTY.md)
 
 **김건우 · [GitHub](https://github.com/withoutsultang)** | KT AIVLE 팀 프로젝트 기반 개인 포트폴리오

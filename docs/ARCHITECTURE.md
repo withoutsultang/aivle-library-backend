@@ -1,5 +1,17 @@
 # 설계 포인트
 
+## 4차 개발 → 5차 AWS 확장
+
+4차는 React·Spring Boot·H2 기반 로컬 개발, 5차는 AWS 배포·환경 구성에 초점을 맞춘 프로젝트입니다. 김건우는 4차 백엔드 API와 인증/인가 개선, 5차 AWS 인프라·환경 설정·배포 전반을 담당했고 일부 작업은 팀원과 공동 수행했습니다.
+
+![4차 로컬 구조](assets/phase-04-local.png)
+
+![5차 AWS 서비스 구조](assets/phase-05-aws.png)
+
+![5차 AWS CI/CD](assets/phase-05-pipeline.png)
+
+AWS의 서비스별 역할·배포 경로·작성 근거는 [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md)에 정리했습니다. 아래 애플리케이션 설계는 현재 개인 공개본을 기준으로 설명합니다.
+
 ## API와 데이터 경계
 
 Controller는 요청과 응답 계약을, Service는 사용자·도서·본문 작업과 권한 확인을, Repository는 데이터 접근을 담당합니다.
@@ -17,21 +29,9 @@ DB에는 S3 object key를 저장하고 응답 단계에서 서명 URL을 만듭�
 
 DynamoDB 원자적 UpdateItem으로 조회수를 증가시키고, 스케줄러는 Scan paginator로 모든 페이지를 순회해 MySQL 인기 정렬의 기준 값을 갱신합니다. 리전·테이블·동기화 주기는 외부 설정으로 지정할 수 있습니다.
 
-## 배포 흐름
+## 현재 공개본의 실행·배포 설정
 
-```mermaid
-flowchart LR
-    Code[Git Source] --> Test[Unit Test]
-    Test --> Build[Gradle bootJar]
-    Build --> Review[Manual Approval]
-    Review --> Deploy[CodeDeploy / EC2]
-    SSM[Parameter Store] --> Start[start.sh]
-    Deploy --> Start
-    Start --> Health[HTTP 200 readiness]
-```
-
-팀 프로젝트에서 사용한 AWS 배포 흐름을 기준으로 배포 스크립트와 명세를 보관합니다. 개인 저장소의 GitHub Actions는 테스트·패키징만 실행합니다. AWS 배포는 본인이 구성한 환경에서 별도로 실행합니다.
-
+`buildspec.yml`은 JAR·appspec·scripts를 배포 산출물로 묶고, CodeDeploy hook은 시작·중지·상태 검사를 실행합니다. `start.sh`는 SSM 설정을 읽고 필수 값을 확인해 앱을 시작하며 `validate.sh`는 HTTP 200을 검사합니다. 개인 저장소 GitHub Actions는 테스트·패키징을 검증합니다. 5차 AWS 파이프라인 구성은 위 이미지와 [배포 문서](AWS_DEPLOYMENT.md)에서 별도로 설명합니다.
 
 ## 서버 기반 이미지 생성
 
