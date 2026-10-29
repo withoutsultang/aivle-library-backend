@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+<title id="title">모두의 서재 | Everyone's Library</title><desc id="desc">글에서 한 권의 책으로, 창작과 기술을 연결하는 플랫폼</desc>
+<rect width="1200" height="320" rx="24" fill="#122b2b"/><circle cx="1100" cy="35" r="210" fill="#1d4240"/>
+<path d="M925 96h48v140h-48zm58 28h44v112h-44zm54-38h45v150h-45z" fill="#d5b782"/>
+<path d="M918 246h180" stroke="#e7dcc3" stroke-width="5"/>
+<text x="68" y="66" fill="#d5b782" font-family="sans-serif" font-size="15" letter-spacing="5">KT AIVLE · FULL STACK PROJECT</text>
+<text x="64" y="151" fill="#faf6ee" font-family="sans-serif" font-size="58" font-weight="700">모두의 서재</text>
+<text x="68" y="202" fill="#bdcfca" font-family="sans-serif" font-size="23">글에서 한 권의 책으로, 창작과 기술을 연결하다.</text>
+<text x="68" y="266" fill="#d5b782" font-family="sans-serif" font-size="16">JAVA / SPRING BOOT / REACT / AWS</text></svg>

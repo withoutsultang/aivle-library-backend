@@ -1,30 +1,43 @@
-# 환경 설정·실행·테스트
+# 환경 설정과 실행
 
-```sh
-git clone https://github.com/withoutsultang/aivle-library-backend.git
-cd aivle-library-backend
-git switch dev
-```
+## 테스트·빌드
 
-JDK 17과 접근 가능한 MySQL, 본인이 관리하는 AWS 리소스·권한, 네이버 OAuth 애플리케이션이 필요합니다. 실제 자격증명은 저장소에 넣지 말고 운영체제 환경변수나 본인의 비밀 관리 도구로 주입합니다. `.env.example`은 필요한 변수 목록이며 자동 로드 파일이 아닙니다.
+JDK 17을 설치한 뒤 다음을 실행합니다. AWS 계정과 DB 없이 단위 테스트를 실행할 수 있습니다.
 
-필요한 변수는 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `S3_BUCKET_NAME`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NAVER_REDIRECT_URI`, `NAVER_STATE`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `FRONTEND_BASE_URL`, `FRONTEND_REDIRECT_PATH`입니다. AWS 인증은 SDK 기본 자격증명 체인을 사용합니다.
-
-기본 설정은 AWS Parameter Store의 `/portfolio/library/config/`를 가져옵니다. 원본 `scripts/start.sh`는 별도로 `/portfolio/library/runtime/`에서 값을 읽으므로 두 경로를 같은 것으로 가정하면 안 됩니다. DynamoDB 클라이언트와 테이블 사용에는 원본의 `us-west-1` 및 `PortfolioBookViews` 설정이 남아 있습니다. 서버 주소·S3 URL·DynamoDB 테이블 이름·Parameter Store 경로는 공개용 예시값으로 치환했습니다. `config/WebConfig.java`, `security/SecurityConfig.java`, `global/util/ImageUrlUtil.java`, `scheduler/ViewCountSyncScheduler.java`, `service/BookServiceImpl.java`, `application.yaml`, `scripts/start.sh`의 예시 설정을 본인 리소스에 맞춘 환경에서 실행해야 합니다. 원본 조직의 인프라를 이용할 권한이 있다고 가정하지 마세요.
-
-```sh
-# macOS/Linux
+```bash
 ./gradlew test bootJar
-./gradlew bootRun
-
-# Windows PowerShell
-.\gradlew.bat test bootJar
-.\gradlew.bat bootRun
 ```
 
-API는 기본 포트 `8080`을 사용하며 빌드 결과는 `build/libs/app.jar`입니다. `bootRun`은 외부 DB·AWS·OAuth 설정 완료 후 사용하는 명령입니다. 이번 작업에서는 단위 테스트와 패키징을 검증했고, 외부 서비스 연결과 서버 기동·로그인·저장 흐름은 검증하지 않았습니다. 초기 데이터 등록 코드가 있으므로 실서비스 DB를 검증용으로 사용하지 마세요.
+Windows: `.\gradlew.bat test bootJar`. 산출물: `build/libs/app.jar`.
 
+## API 서버
 
-## 테스트와 현재 제약
+1. MySQL DB와 사용자 계정을 준비합니다.
+2. [.env.example](../.env.example)의 변수들을 실행 환경에 주입합니다. 이 파일은 변수 목록이며 자동 로드되지 않습니다.
+3. 처음 개발용 스키마를 생성할 때 `DB_DDL_AUTO=update`로 실행할 수 있습니다. 기본값은 기존 스키마 확인을 위한 `validate`입니다.
+4. S3 버킷과 기본 표지 `ai-images/default-cover.png`, DynamoDB 테이블(숫자 파티션 키 `book_id`)을 구성합니다.
+5. SDK 기본 자격증명 체인에 본인의 AWS 권한을 설정하고 네이버 OAuth callback을 등록합니다.
+6. `./gradlew bootRun`으로 시작합니다. 기본 포트는 `8080`입니다.
 
-JDK 17에서 `test bootJar`를 실행해 기존 단위 테스트 7개와 패키징이 통과했습니다. MySQL·AWS·네이버 OAuth를 사용하는 전체 서비스 기동과 통합 흐름은 별도 환경에서 확인해야 합니다.
+```bash
+curl http://localhost:8080/api/v1/health
+```
+
+## 외부 설정
+
+|변수|용도|
+|---|---|
+|DB_URL, DB_USERNAME, DB_PASSWORD|MySQL 접속|
+|S3_BUCKET_NAME, AWS_REGION|표지 스토리지·리전|
+|DYNAMODB_TABLE|조회수 테이블|
+|NAVER_CLIENT_ID, NAVER_CLIENT_SECRET, NAVER_REDIRECT_URI, NAVER_STATE|네이버 로그인 설정|
+|JWT_SECRET, JWT_EXPIRATION_MS|32바이트 이상 서명 키·유효 시간|
+|FRONTEND_BASE_URL, CORS_ALLOWED_ORIGINS|프론트 주소·허용 origin 목록|
+|OPENAI_API_KEY, IMAGE_MODEL|서버 이미지 생성 API 설정|
+|IMAGE_SOURCE_HOSTS|이미지 다운로드 허용 HTTPS 호스트, 쉼표 구분|
+
+애플리케이션은 환경변수에서 설정을 받습니다. EC2 배포의 `scripts/start.sh`는 SSM 경로에서 설정을 읽어 같은 프로세스 환경에 전달합니다. 초기 예시 데이터가 필요한 개발 환경에서는 `SEED_DATA_ENABLED=true`를 설정합니다.
+
+## 배포
+
+EC2에 JDK 17, AWS CLI, jq, lsof를 준비합니다. `buildspec.yml`이 JAR·appspec·scripts를 구성하고 CodeDeploy가 시작 스크립트를 실행합니다. `ValidateService`는 `/api/v1/health`의 HTTP 200을 확인합니다. SSM 경로는 `SSM_PARAMETER_PATH`, 실행 디렉터리는 `APP_DIR`로 지정합니다. 실제 자격증명은 저장소에 커밋하지 않습니다.

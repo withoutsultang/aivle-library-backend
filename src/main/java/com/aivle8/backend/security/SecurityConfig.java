@@ -16,12 +16,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Spring Security 설정 클래스입니다.
  * - JWT 기반 인증을 적용했습니다.
  * - /api/v1/auth/** 경로는 인증(로그인)을 제외했습니다.
- * - /h2-console/** 경로는 H2 콘솔 접근을 위해 열어두었습니다.
  * - 나머지 API는 접근 시 반드시 로그인(인증)이 필요하도록 설정했습니다.
  */
 @Configuration
@@ -29,6 +29,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtService jwtService;
+    @Value("${app.cors.allowed-origins:http://localhost:5173}") private String allowedOrigins;
 
     // JWT 필터 bean
     @Bean
@@ -45,8 +46,8 @@ public class SecurityConfig {
                 // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
 
-                // H2 콘솔 frame 허용
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                // 동일 출처의 프레임만 허용
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
                 // JWT 기반이므로 세션 사용 X
                 .sessionManagement(session ->
@@ -54,7 +55,7 @@ public class SecurityConfig {
 
                 // URL 접근 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/health", "/api/v1/auth/**", "/h2-console/**").permitAll() // 루트(/) 추가
+                        .requestMatchers("/api/v1/health", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
@@ -71,10 +72,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173",
-                "https://frontend.example.invalid","http://api.example.invalid")); // 프론트 로컬 허용
+        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Authorization"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         config.setAllowCredentials(true); // 쿠키/JWT 헤더 허용
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

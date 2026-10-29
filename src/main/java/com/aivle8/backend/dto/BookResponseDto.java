@@ -3,7 +3,7 @@ package com.aivle8.backend.dto;
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookLike;
 import com.aivle8.backend.domain.User;
-import com.aivle8.backend.global.util.ImageUrlUtil;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +45,7 @@ public class BookResponseDto {
 
         long likeCount = book.getBookLikes() != null ? book.getBookLikes().size() : 0;
 
-        String imageUrl = ImageUrlUtil.toFullUrl(book.getCoverImageUrl());
+        String imageUrl = book.getCoverImageUrl();
 
         return BookResponseDto.builder()
                 .bookId(book.getBookId())

@@ -2,11 +2,13 @@ package com.aivle8.backend.dto;
 
 import com.aivle8.backend.domain.Book;
 import com.aivle8.backend.domain.BookDetail;
-import com.aivle8.backend.global.util.ImageUrlUtil;
+
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 public class BookUpdateResponseDto {
     private String title;
@@ -20,7 +22,7 @@ public class BookUpdateResponseDto {
 
         BookDetail detail = book.getBookDetail();
 
-        String imageUrl = ImageUrlUtil.toFullUrl(book.getCoverImageUrl());
+        String imageUrl = book.getCoverImageUrl();
 
         return BookUpdateResponseDto.builder()
                 .title(book.getTitle())

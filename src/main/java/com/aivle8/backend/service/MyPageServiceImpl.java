@@ -27,6 +27,11 @@ public class MyPageServiceImpl implements MyPageService {
     private final BookRepository bookRepository;
     private final BookLikeRepository bookLikeRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
+    private BookResponseDto coverUrl(BookResponseDto dto) {
+        dto.setCoverImageUrl(s3Service.getPresignedUrl(dto.getCoverImageUrl()));
+        return dto;
+    }
 
     private User getCurrentUser() {
         String userIdStr = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -40,7 +45,7 @@ public class MyPageServiceImpl implements MyPageService {
     public List<BookResponseDto> getMyBooks() {
         User user = getCurrentUser();
         return bookRepository.findByUser(user).stream()
-                .map(BookResponseDto::fromEntity) // Book → BookResponseDto
+                .map(BookResponseDto::fromEntity).map(this::coverUrl) // Book → BookResponseDto
                 .toList();
     }
 
@@ -48,7 +53,7 @@ public class MyPageServiceImpl implements MyPageService {
     public List<BookResponseDto> getLikedBooks() {
         User user = getCurrentUser();
         return bookLikeRepository.findByUser(user).stream()
-                .map(BookResponseDto::fromBookLikeEntity) // BookLike → BookResponseDto
+                .map(BookResponseDto::fromBookLikeEntity).map(this::coverUrl) // BookLike → BookResponseDto
                 .toList();
     }
 }

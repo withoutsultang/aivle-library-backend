@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import java.util.List;
 
 @RestController
@@ -47,11 +49,11 @@ public class BookController {
      * POST api/v1/books
      */
     @PostMapping
-    public BaseResponse<BookCreateResponseDto> createBook(@RequestBody @Valid BookCreateRequestDto request,
+    public ResponseEntity<BaseResponse<BookCreateResponseDto>> createBook(@RequestBody @Valid BookCreateRequestDto request,
                                                           @AuthenticationPrincipal String userId) {
-        return BaseResponse.created(
+        return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.created(
                 bookService.createBook(request, Long.parseLong(userId))
-        );
+        ));
     }
 
     /**

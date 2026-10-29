@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Map;
 import java.util.List;
 
@@ -39,6 +40,22 @@ public class BookServiceImpl implements BookService {
     private final DynamoDbClient dynamoDbClient;
 
     private static final String DEFAULT_IMAGE_KEY = "ai-images/default-cover.png";
+    @Value("${app.dynamodb.table:PortfolioBookViews}") private String viewCountTable;
+
+    private BookResponseDto response(Book book) {
+        BookResponseDto dto = BookResponseDto.fromEntity(book);
+        dto.setCoverImageUrl(s3Service.getPresignedUrl(book.getCoverImageUrl()));
+        return dto;
+    }
+
+    private void replaceCover(Book book, String input) {
+        String current = book.getCoverImageUrl();
+        if (s3Service.isSameImage(current, input)) return;
+        String replacement = input == null || input.isBlank()
+                ? DEFAULT_IMAGE_KEY : s3Service.uploadImageFromUrl(input);
+        book.setCoverImageUrl(replacement);
+        s3Service.deleteImage(current);
+    }
 
 
     @Override
@@ -48,14 +65,14 @@ public class BookServiceImpl implements BookService {
 
         incrementViewCount(bookId);
 
-        return BookResponseDto.fromEntity(book);
+        return response(book);
     }
 
     @Override
     public void incrementViewCount(Long bookId) { // 인터페이스 명칭과 동일하게
         try {
             UpdateItemRequest request = UpdateItemRequest.builder()
-                    .tableName("PortfolioBookViews")
+                    .tableName(viewCountTable)
                     .key(Map.of("book_id", AttributeValue.builder().n(String.valueOf(bookId)).build()))
                     .updateExpression("SET view_count = if_not_exists(view_count, :zero) + :incr")
                     .expressionAttributeValues(Map.of(
@@ -88,21 +105,7 @@ public class BookServiceImpl implements BookService {
             throw new CustomException(ErrorCode.FORBIDDEN, "본인 도서만 수정 가능합니다.");
         }
 
-        String currentS3Key = book.getCoverImageUrl();
-        String requestUrl = dto.getCoverImageUrl();
-
-        if (requestUrl == null || requestUrl.trim().isEmpty()) {
-            if (!DEFAULT_IMAGE_KEY.equals(currentS3Key)) {
-                if (currentS3Key != null) s3Service.deleteImage(currentS3Key);
-                book.setCoverImageUrl(DEFAULT_IMAGE_KEY);
-            }
-        } else if (!requestUrl.equals(currentS3Key)) {
-            if (currentS3Key != null && !DEFAULT_IMAGE_KEY.equals(currentS3Key)) {
-                s3Service.deleteImage(currentS3Key);
-            }
-            String newS3Key = s3Service.uploadImageFromUrl(requestUrl);
-            book.setCoverImageUrl(newS3Key);
-        }
+        replaceCover(book, dto.getCoverImageUrl());
 
         book.setTitle(dto.getTitle());
         book.setCategory(dto.getCategory());
@@ -116,7 +119,9 @@ public class BookServiceImpl implements BookService {
         detail.setDescription(dto.getDescription());
         detail.setContent(dto.getContent());
 
-        return BookUpdateResponseDto.fromEntity(book);
+        BookUpdateResponseDto result = BookUpdateResponseDto.fromEntity(book);
+        result.setCoverImageUrl(s3Service.getPresignedUrl(book.getCoverImageUrl()));
+        return result;
     }
 
     @Override
@@ -147,14 +152,14 @@ public class BookServiceImpl implements BookService {
         Pageable pageable = PageRequest.of(page, size, sortOption);
 
         return bookRepository.findAll(pageable)
-                .map(BookResponseDto::fromEntity);
+                .map(this::response);
     }
 
     @Override
     public List<BookResponseDto> getPopularBooks(int limit){
         Pageable pageable = PageRequest.of(0, limit);
         return bookRepository.findTopByViewCount(pageable).stream()
-                .map(BookResponseDto::fromEntity)
+                .map(this::response)
                 .toList();
     }
 
@@ -195,8 +200,6 @@ public class BookServiceImpl implements BookService {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND, "도서 없음"));
         if (!book.getUser().getUserId().equals(userId)) throw new CustomException(ErrorCode.FORBIDDEN, "권한 없음");
 
-        s3Service.deleteImage(book.getCoverImageUrl());
-        String newS3Key = s3Service.uploadImageFromUrl(dto.getCoverImageUrl());
-        book.setCoverImageUrl(newS3Key);
+        replaceCover(book, dto.getCoverImageUrl());
     }
 }

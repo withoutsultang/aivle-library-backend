@@ -53,7 +53,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// AWS Parameter Store 연동을 위한 의존성 추가
-	implementation 'io.awspring.cloud:spring-cloud-starter-aws-parameter-store-config:2.4.4'
+	// Runtime settings are injected through the environment or CodeDeploy SSM loader.
 
 	// S3 (v1) - 기존 유지
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.500'
