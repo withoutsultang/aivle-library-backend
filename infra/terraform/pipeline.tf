@@ -9,7 +9,7 @@ locals {
       version = "0.2"
       phases = {
         install = { "runtime-versions" = { java = "corretto17" } }
-        build   = { commands = ["chmod +x gradlew", "./gradlew test"] }
+        build   = { commands = ["chmod +x gradlew", "./gradlew test integrationTest verifyProductionJar"] }
       }
     }
     backend-build = {

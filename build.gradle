@@ -66,6 +66,55 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Demo adapters and sample sessions are never included in the production bootJar.
+sourceSets {
+    demo {
+        compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+    integrationTest {
+        compileClasspath += sourceSets.main.output + sourceSets.demo.output + configurations.testCompileClasspath
+        runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = 'Verify real Spring Security/REST/JPA/SQL behavior with demo-only external adapters.'
+    dependsOn tasks.named('demoClasses')
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
+    environment 'AWS_EC2_METADATA_DISABLED', 'true'
+    jvmArgs '-Djava.awt.headless=true'
+    testLogging { events 'passed', 'failed' }
+}
+
+tasks.register('demoRun', JavaExec) {
+    group = 'application'
+    description = 'Start loopback-only portfolio demo with real REST/JPA/H2 and local external-service adapters.'
+    dependsOn tasks.named('demoClasses')
+    classpath = sourceSets.demo.runtimeClasspath
+    mainClass = 'com.aivle8.backend.demo.DemoApplication'
+    args '--spring.profiles.active=demo'
+    environment 'AWS_EC2_METADATA_DISABLED', 'true'
+    jvmArgs '-Djava.awt.headless=true'
+}
+
+tasks.register('verifyProductionJar') {
+    group = 'verification'
+    description = 'Assert demo sessions, fixtures, database inspection and H2 are absent from production.'
+    dependsOn tasks.named('bootJar')
+    doLast {
+        def jarFile = tasks.named('bootJar').get().archiveFile.get().asFile
+        def forbidden = zipTree(jarFile).matching {
+            include '**/demo/**', '**/application-demo.*', '**/h2-*.jar', '**/mockito-*.jar'
+        }.files
+        if (!forbidden.isEmpty()) throw new GradleException('Demo/test classes found in production JAR')
+        println 'Production JAR excludes demo sessions, database inspection, H2 and Mockito.'
+    }
+}
 test {
 	useJUnitPlatform()
 

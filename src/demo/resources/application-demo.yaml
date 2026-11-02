@@ -1,0 +1,41 @@
+server:
+  address: 127.0.0.1
+  port: 18080
+spring:
+  datasource:
+    url: jdbc:h2:mem:library_demo;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password: ''
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+cloud:
+  aws:
+    s3:
+      bucket: portfolio-demo
+    region:
+      static: us-west-1
+naver:
+  client-id: demo-placeholder
+  client-secret: demo-placeholder
+  redirect-uri: http://127.0.0.1:15173/oauth/success
+  state: demo-placeholder
+jwt:
+  secret: ${random.uuid}${random.uuid}
+  expiration-ms: 3600000
+app:
+  seed:
+    enabled: false
+  cors:
+    allowed-origins: http://127.0.0.1:15173
+  dynamodb:
+    table: demo-views
+    sync-cron: '-'
+logging:
+  level:
+    com.amazonaws: ERROR
+    org.hibernate: WARN
+    org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration: ERROR

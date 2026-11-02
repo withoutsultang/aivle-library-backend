@@ -16,4 +16,4 @@ jobs:
           distribution: temurin
           java-version: '17'
       - run: chmod +x gradlew
-      - run: ./gradlew test bootJar
+      - run: ./gradlew test integrationTest verifyProductionJar
