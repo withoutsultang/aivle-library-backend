@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Terraform provisions this non-secret host configuration outside application releases.
+LIBRARY_HOST_CONFIG="${LIBRARY_HOST_CONFIG:-/etc/default/library}"
+if [ -r "$LIBRARY_HOST_CONFIG" ]; then
+  source "$LIBRARY_HOST_CONFIG"
+fi
 APP_DIR="${APP_DIR:-/home/ubuntu/app}"
 JAR_PATH="$APP_DIR/app.jar"
 PARAM_PATH="${SSM_PARAMETER_PATH:-/portfolio/library/runtime/}"
@@ -17,6 +22,11 @@ while IFS= read -r row; do
       export "$key=$value" ;;
   esac
 done < <(printf '%s' "$parameters" | jq -r '.Parameters[] | @base64')
+if [ -n "${DB_SECRET_ARN:-}" ]; then
+  DB_PASSWORD=$(aws secretsmanager get-secret-value --region "$AWS_REGION" \
+    --secret-id "$DB_SECRET_ARN" --query SecretString --output text | jq -er '.password')
+  export DB_PASSWORD
+fi
 : "${DB_URL:?DB_URL is required}"
 : "${DB_USERNAME:?DB_USERNAME is required}"
 : "${DB_PASSWORD:?DB_PASSWORD is required}"

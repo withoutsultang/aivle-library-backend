@@ -40,4 +40,6 @@ curl http://localhost:8080/api/v1/health
 
 ## 배포
 
+개인 공개본의 [Terraform 실행 가이드](../infra/terraform/README.md)에서 AWS 구성과 단계별 배포를 재현할 수 있습니다. EC2 bootstrap이 작성한 `/etc/default/library`의 비밀이 아닌 호스트 설정을 시작 스크립트가 읽습니다. `DB_SECRET_ARN`이 있으면 RDS 관리형 비밀번호를 Secrets Manager에서 조회하며, 기존 환경의 SSM `DB_PASSWORD` 방식도 사용할 수 있습니다. 로컬 테스트에서는 `LIBRARY_HOST_CONFIG`로 호스트 설정 파일을 지정할 수 있습니다.
+
 EC2에 JDK 17, AWS CLI, jq, lsof를 준비합니다. `buildspec.yml`이 JAR·appspec·scripts를 구성하고 CodeDeploy가 시작 스크립트를 실행합니다. `ValidateService`는 `/api/v1/health`의 HTTP 200을 확인합니다. SSM 경로는 `SSM_PARAMETER_PATH`, 실행 디렉터리는 `APP_DIR`로 지정합니다. 실제 자격증명은 저장소에 커밋하지 않습니다.

@@ -51,6 +51,19 @@ React 화면·네이버 로그인·AI 표지·도서 API를 연결한 서비스 
 
 자세한 구성과 기여 근거는 [AWS 배포·환경 구성](docs/AWS_DEPLOYMENT.md), [개인 기여](docs/CONTRIBUTIONS.md)에서 확인할 수 있습니다. 이미지는 5차 팀 코드·콘솔 자료를 재구성한 설명도이며, 인스턴스 개수는 구조를 보여주기 위한 예시입니다.
 
+## 개인 공개본 고도화 · AWS 인프라 코드화
+
+5차 AWS 경험을 **Terraform으로 다시 구성할 수 있는 인프라 코드**로 확장했습니다. 4·5차 당시 이력과 구분한 2026년 11월의 개인 고도화입니다.
+
+- VPC·서브넷·내부 ALB·비공개 EC2/ASG·RDS·S3·DynamoDB와 IAM을 코드로 정의
+- CloudFront VPC origin·OAC, SPA 경로와 API 캐시 분리, RDS 관리형 비밀번호·SSM 실행 설정 연결
+- 프론트·백엔드 Test → Build → Approval → Deploy 파이프라인과 CloudWatch 관측 구성
+- AWS 계정 없이 실행하는 **인프라 모의 검증 4개 시나리오**, 설정·라우팅·시작 스크립트 테스트와 CI
+
+[인프라 코드와 실행 가이드](infra/terraform/README.md) · [인프라 검증 workflow](.github/workflows/infrastructure.yml)
+
+계정에서 리소스를 생성하는 단계와 로컬·CI 검증을 구분했습니다. 현재 검증 범위와 실행 절차는 가이드에서 확인할 수 있습니다.
+
 ## 개인 공개본 고도화 · 2026년 10월
 
 4·5차 프로젝트 이력을 바탕으로 현재 공개본에는 다음 개선을 추가했습니다.

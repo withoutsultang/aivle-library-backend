@@ -1,0 +1,4 @@
+# Copy to backend.tf only when an encrypted/versioned state bucket exists.
+terraform {
+  backend "s3" {}
+}

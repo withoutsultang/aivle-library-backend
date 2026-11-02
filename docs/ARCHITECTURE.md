@@ -31,6 +31,8 @@ DynamoDB 원자적 UpdateItem으로 조회수를 증가시키고, 스케줄러�
 
 ## 현재 공개본의 실행·배포 설정
 
+2026년 11월의 [Terraform 구성](../infra/terraform/README.md)은 CloudFront VPC origin과 내부 ALB, 비공개 EC2·RDS, OAC 기반 S3를 명세합니다. 기존 5차 아키텍처 그림과 구분한 후속 고도화이며, 네트워크·저장·권한·배포 경로를 AWS 계정 없는 모의 테스트로 검증합니다.
+
 `buildspec.yml`은 JAR·appspec·scripts를 배포 산출물로 묶고, CodeDeploy hook은 시작·중지·상태 검사를 실행합니다. `start.sh`는 SSM 설정을 읽고 필수 값을 확인해 앱을 시작하며 `validate.sh`는 HTTP 200을 검사합니다. 개인 저장소 GitHub Actions는 테스트·패키징을 검증합니다. 5차 AWS 파이프라인 구성은 위 이미지와 [배포 문서](AWS_DEPLOYMENT.md)에서 별도로 설명합니다.
 
 ## 서버 기반 이미지 생성

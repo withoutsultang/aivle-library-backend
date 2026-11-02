@@ -1,0 +1,13 @@
+# New personal lab resources; this is not an import of the historical team account.
+name = "aivle-library-lab"
+region = "us-west-1"
+min_instances = 2
+desired_instances = 2
+max_instances = 4
+db_multi_az = false
+database_ddl_auto = "validate"
+elb_health_checks_enabled = false
+# After AWS GitHub connection authorization and runtime secret setup:
+enable_pipelines = false
+connection_arn = ""
+approval_email = ""

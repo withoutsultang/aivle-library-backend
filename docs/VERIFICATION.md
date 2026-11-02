@@ -1,5 +1,15 @@
 # 검증 기록
 
+## 2026-11-02 · AWS 인프라 코드 검증
+
+Terraform 1.13.5·AWS provider 6.9.0 기준으로 `fmt -check`·`validate`와 모의 제공자 테스트 **4개 시나리오**를 실행했습니다. 비공개 ALB·DB, 2 AZ 서브넷, S3 공개 차단, RDS 관리형 비밀·암호화·삭제 보호, 앱 포트·health·DynamoDB 키 계약, API·정적 캐시, OAuth callback과 배포 단계·용량 검증을 포함합니다.
+
+추가로 SecureString 설정 도구의 Python 테스트 **4개**, SPA·OAuth·정적 자산·API 경로 **8개 입력**, 실행 시 비밀번호 주입·읽기 실패 중단 **2개 경로**를 테스트했습니다. 시작 스크립트·EC2 bootstrap의 Bash 문법도 확인했습니다. [Infrastructure workflow](../.github/workflows/infrastructure.yml)는 이 검증을 AWS 인증 없이 실행합니다.
+
+이 결과는 코드·계약 검증입니다. 실제 AWS 리소스 생성, 계정별 quota·권한, AMI bootstrap·OAuth·업무 여정은 실행 가이드에 따라 별도로 검증합니다. 5차 당시의 배포 결과와 이번 개인 고도화 테스트를 구분합니다.
+
+---
+
 2026-10-29 · 개인 공개본 고도화 검증
 
 ## 테스트와 패키징

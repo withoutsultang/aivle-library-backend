@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec >> /var/log/library-bootstrap.log 2>&1
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y openjdk-17-jre-headless ruby-full curl unzip jq lsof
+curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscli.zip
+unzip -q /tmp/awscli.zip -d /tmp
+/tmp/aws/install --update
+curl -fsSL https://aws-codedeploy-${region}.s3.${region}.amazonaws.com/latest/install -o /tmp/codedeploy-install
+chmod +x /tmp/codedeploy-install
+/tmp/codedeploy-install auto
+systemctl enable --now codedeploy-agent
+install -d -o ubuntu -g ubuntu /home/ubuntu/app
+cat > /etc/default/library <<'RUNTIME'
+AWS_REGION='${region}'
+SSM_PARAMETER_PATH='${parameter_path}'
+DB_SECRET_ARN='${db_secret_arn}'
+APP_DIR='/home/ubuntu/app'
+RUNTIME
+chmod 644 /etc/default/library
+curl -fsSL https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -o /tmp/cloudwatch.deb
+dpkg -i /tmp/cloudwatch.deb
+cat > /opt/aws/amazon-cloudwatch-agent/etc/library.json <<'CONFIG'
+{
+  "agent": {"region": "${region}"},
+  "metrics": {"namespace": "${namespace}", "metrics_collected": {"mem": {"measurement": ["mem_used_percent"]}}},
+  "logs": {"logs_collected": {"files": {"collect_list": [
+    {"file_path": "/home/ubuntu/app/nohup.out", "log_group_name": "${app_log_group}", "log_stream_name": "{instance_id}"},
+    {"file_path": "/var/log/library-bootstrap.log", "log_group_name": "${bootstrap_log_group}", "log_stream_name": "{instance_id}"}
+  ]}}}
+}
+CONFIG
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/library.json -s
+echo 'Library bootstrap complete'
